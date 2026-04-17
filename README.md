@@ -126,8 +126,6 @@ Open `examples/01_basic_test.lisp`, adjust the `:file` path if needed, then eval
 ```lisp
 (in-package :opusmodus)
 
-(load "src/Csound.lisp")
-(load "src/CsoundInstrumentsLib.lisp")
 
 (def-csound-score
   :file "/absolute/path/to/Basic_Test.csd"
