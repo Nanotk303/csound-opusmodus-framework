@@ -1,5 +1,6 @@
 # csound-opusmodus-framework
-
+![Status](https://img.shields.io/badge/status-active-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
 Csound–Opusmodus Framework
 
 A Unified DSL for Algorithmic Composition and Sound Synthesis
