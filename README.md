@@ -1,246 +1,228 @@
-# csound-opusmodus-framework
+# Csound–Opusmodus Framework
+### A Unified DSL for Algorithmic Composition and Sound Synthesis
+
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
-Csound–Opusmodus Framework
 
-A Unified DSL for Algorithmic Composition and Sound Synthesis
+**Author:** Stéphane Boussuge  
+**Year:** 2026
 
-Author: Stéphane Boussuge
-Year: 2026
+---
 
-⸻
+## Overview
 
-Overview
-
-The Csound–Opusmodus Framework is a Common Lisp domain-specific language (DSL) designed to unify algorithmic composition and sound synthesis within a single environment.
+The **Csound–Opusmodus Framework** is a Common Lisp domain-specific language (DSL) designed to unify **algorithmic composition** and **sound synthesis** within a single environment.
 
 It enables composers to:
-	•	Define Csound instruments using structured Lisp abstractions
-	•	Generate musical material algorithmically in Opusmodus
-	•	Control synthesis parameters through named fields
-	•	Automatically construct audio routing graphs
-	•	Render complete .csd files directly from Lisp
-	•	Seamlessly switch between real-time playback and offline rendering
 
-This framework bridges the gap between symbolic composition systems and low-level synthesis environments.
+- Define Csound instruments using structured Lisp abstractions
+- Generate musical material algorithmically in Opusmodus
+- Control synthesis parameters through named fields
+- Automatically construct audio routing graphs
+- Render complete `.csd` files directly from Lisp
+- Seamlessly switch between real-time playback and offline rendering
 
-⸻
+This framework bridges the gap between **symbolic composition systems** and **low-level synthesis environments**.
 
-Core Philosophy
+---
+
+## Core Philosophy
 
 Rather than writing raw Csound code manually, the framework introduces a layered workflow:
-	1.	Instruments are declared using a Lisp DSL
-	2.	Musical events are generated via parameterized structures
-	3.	A full Csound score is assembled automatically
-	4.	Rendering and playback are controlled from within Opusmodus
 
-Advantages
-	•	Structural validation before rendering
-	•	High reusability of instruments
-	•	Clear separation between composition and synthesis
-	•	Full compatibility with algorithmic processes
+1. Instruments are declared using a Lisp DSL
+2. Musical events are generated via parameterized structures
+3. A full Csound score is assembled automatically
+4. Rendering and playback are controlled from within Opusmodus
 
-⸻
+### Advantages
 
-Architecture
+- Structural validation before rendering
+- High reusability of instruments
+- Clear separation between composition and synthesis
+- Full compatibility with algorithmic processes
 
-Core Engine
+---
 
+## Repository Structure
+
+```text
+csound-opusmodus-framework/
+├── src/
+│   ├── Csound.lisp
+│   └── CsoundInstrumentsLib.lisp
+├── examples/
+│   ├── 01_basic_test.lisp
+│   ├── 02_vco2pad_demo.lisp
+│   └── audio/
+├── docs/
+│   └── manual.pdf
+├── .gitignore
+├── LICENSE
+├── CHANGELOG.md
+└── README.md
+```
+
+---
+
+## Architecture
+
+### Core Engine
+```text
 src/Csound.lisp
+```
 
 Contains:
-	•	DSL for instrument definition (defcsinstr)
-	•	Event system (cs-event)
-	•	Score generation (def-csound-score)
-	•	Audio routing system
-	•	Csound process management
 
-⸻
+- DSL for instrument definition (`defcsinstr`)
+- Event system (`cs-event`)
+- Score generation (`def-csound-score`)
+- Audio routing system
+- Csound process management
 
-Instrument Library
-
+### Instrument Library
+```text
 src/CsoundInstrumentsLib.lisp
+```
 
-	•	Drones and pads
-	•	Granular synthesis
-	•	FM synthesis
-	•	Analog synthesis
-	•	Sampling and spectral processing
-	•	Noise and vocoder systems
-	•	Effects (including plateau1 reverb)
+Includes:
 
-⸻
+- Drones and pads
+- Granular synthesis
+- FM synthesis
+- Analog synthesis
+- Sampling and spectral processing
+- Noise and vocoder systems
+- Effects (including `plateau1`)
 
-Installation
+---
 
-Requirements
-	•	Opusmodus
-	•	Csound 6+
-	•	Common Lisp (LispWorks recommended)
+## Requirements
 
-⸻
+- Opusmodus
+- Csound 6+
+- Common Lisp environment (LispWorks recommended)
 
-Setup
+---
+
+## Installation
 
 Clone the repository:
 
+```bash
 git clone https://github.com/YOUR_USERNAME/csound-opusmodus-framework.git
+```
 
-Load the framework:
+Load the framework in Opusmodus:
 
-(load "Csound.lisp")
-(load "CsoundInstrumentsLib.lisp")
+```lisp
+(load "src/Csound.lisp")
+(load "src/CsoundInstrumentsLib.lisp")
+```
 
-Basic Usage
+---
 
-Minimal Example
+## Quick Start
 
+Open `examples/01_basic_test.lisp`, adjust the `:file` path if needed, then evaluate.
+
+```lisp
 (in-package :opusmodus)
 
+(load "src/Csound.lisp")
+(load "src/CsoundInstrumentsLib.lisp")
+
 (def-csound-score
-  :file "example.csd"
+  :file "/absolute/path/to/Basic_Test.csd"
   :instruments '("sinedrone")
   :fx '("plateau1" "output")
-
-  :score-headers
-  '("f 0 60")
-
+  :score-headers '("f 0 30")
   :events
   (list
    (cs-event "sinedrone"
-     :start '(0 10 20)
+     :start '(0 5 10)
      :dur 8
-     :amp -24
+     :amp '(-24 -25 -26)
      :midi '(48 55 60)
      :pan1 0.2
      :pan2 0.8))
-
   :play nil)
 
 (render-last-score :open t)
+```
 
-Key Concepts
+---
 
-Instrument Definition
+## Included Examples
 
-(defcsinstr myinstrument
-  (:type :instrument)
-  (:pfields amp freq pan1 pan2)
-  (:body
-    (asig oscili amp freq 1)
-    (outleta leftout asig)
-    (outleta rightout asig)))
+- `examples/01_basic_test.lisp` — minimal test using `sinedrone`
+- `examples/02_vco2pad_demo.lisp` — simple texture with `vco2pad1`
 
+---
 
-    Event Generation
-
-
-    (cs-event "myinstrument"
-  :start '(0 1 2 3)
-  :dur 4
-  :amp -20
-  :freq '(220 330 440 550))
-
-  Automatic Features
-	•	Parameter validation
-	•	List broadcasting
-	•	Audio routing generation
-	•	FX chain activation
-	•	Score formatting
-
-⸻
-
-Audio Routing
-
-Routing is automatically generated:
-
-
-Instrument → FX → Output
-
-Example:
-
-:fx '("plateau1" "output")
-
-Produces:
-
-sinedrone → plateau1 → output
-
-
-Rendering
-
-Real-time playback
-
-:play t
-
-Offline rendering
-
-(render-last-score :open t)
-
-Example Content
-
-examples/
-
-Includes:
-	•	Basic tests
-	•	Algorithmic compositions
-	•	Just intonation studies
-	•	Granular textures
-
-⸻
-
-Best Practices
-	•	Use absolute paths for production
-	•	Keep output as the final FX stage
-	•	Do not send events to FX or output modules
-	•	Control amplitude to avoid signal overload
-	•	Prefer offline rendering for debugging
-
-⸻
-
-Known Limitations
-	•	Strict pfield mapping required
-	•	No automatic amplitude normalization
-	•	Requires external Csound installation
-
-⸻
-
-Applications
-	•	Algorithmic composition
-	•	Electroacoustic music
-	•	Generative systems
-	•	Research in computer-assisted composition
-	•	Hybrid symbolic/audio workflows
-
-⸻
-
-Academic Context
-
-This framework contributes to research in:
-	•	Unified composition/synthesis environments
-	•	DSL design for music systems
-	•	Integration of symbolic and audio domains
-
-⸻
-
-License
-
-MIT License
-
-⸻
-
-Author
-
-Stéphane Boussuge
-Composer — Algorithmic Composition Specialist
-
-⸻
-
-Acknowledgements
-	•	Opusmodus
-	•	Csound community
-
-  ## Documentation
+## Documentation
 
 Full manual available in:
-docs/manual.pdf
 
+```text
+docs/manual.pdf
+```
+
+---
+
+## Best Practices
+
+- Use absolute paths for production score files
+- Keep `output` as the final FX stage
+- Do not send events directly to FX or output modules
+- Control amplitude carefully in dense textures
+- Prefer offline rendering for debugging and waveform inspection
+
+---
+
+## Known Limitations
+
+- Strict pfield mapping is required
+- External Csound installation is necessary
+- Signal normalization remains the composer's responsibility
+
+---
+
+## Applications
+
+- Algorithmic composition
+- Electroacoustic music
+- Generative systems
+- Research in computer-assisted composition
+- Hybrid symbolic/audio workflows
+
+---
+
+## Academic Context
+
+This framework contributes to research in:
+
+- Unified composition/synthesis environments
+- DSL design for music systems
+- Integration of symbolic and audio domains
+
+---
+
+## License
+
+This project is released under the MIT License. See `LICENSE`.
+
+---
+
+## Author
+
+**Stéphane Boussuge**  
+Composer — Algorithmic Composition Specialist
+
+---
+
+## Acknowledgements
+
+- Opusmodus
+- The Csound community
+- Research in computer-assisted composition
