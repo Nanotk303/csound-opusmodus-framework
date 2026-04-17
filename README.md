@@ -238,4 +238,9 @@ Composer — Algorithmic Composition Specialist
 Acknowledgements
 	•	Opusmodus
 	•	Csound community
-  
+
+  ## Documentation
+
+Full manual available in:
+docs/manual.pdf
+
