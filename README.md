@@ -113,12 +113,9 @@ Clone the repository:
 git clone https://github.com/YOUR_USERNAME/csound-opusmodus-framework.git
 ```
 
-Load the framework in Opusmodus:
+Evaluate the Csound.lisp and CsoundInstrumentsLib.lisp in Opusmodus for a quick test. For installation, copy Csound.lisp in Opusmodus/User Source/Extensions directory and CsoundInstrumentsLib.lisp in Opusmodus/User Source/Libraries 
+and restart Opusmodus
 
-```lisp
-(load "src/Csound.lisp")
-(load "src/CsoundInstrumentsLib.lisp")
-```
 
 ---
 
