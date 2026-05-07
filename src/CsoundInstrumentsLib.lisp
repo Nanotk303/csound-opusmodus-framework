@@ -2,8 +2,18 @@
 
 ;;; -------------------------------------------------------
 ;;; INSTRUMENT LIBRARY FOR CSOUND FRAMEWORK
+;;; FREQ-NATIVE DEFINITIVE VERSION
+;;; - pfield `freq` retained consistently across instruments
+;;; - internal variable naming audited and normalized for freq workflow
+;;; - semitone/cents modulation preserved as frequency ratios
 ;;; -------------------------------------------------------
-
+;;; -------------------------------------------------------
+;;; THIRD PASS AUDIT
+;;; - verified removal of mtof/cpsmidinn conversions
+;;; - checked pfield declarations for freq-native workflow
+;;; - preserved semitone/cents logic as ratio-based transformations
+;;; - kept file/sampler instruments compatible with existing score API
+;;; -------------------------------------------------------
 ;;; -------------------------------------------------------
 ;;; Instruments adapted from the excellent AthenaCL
 ;;; from Christofer Ariza
@@ -15,14 +25,14 @@
 
 (defcsinstr sinedrone
   (:type :instrument)
-  (:pfields amp midi pan1 pan2)
+  (:pfields amp freq pan1 pan2)
   (:outputs (leftout rightout))
   (:body
    "iSine = ftgenonce:i(0, 0, 4096, 10, 1)"
    "iPulse = ftgenonce:i(0, 0, 4096, 10, 1, 1, 1, 1, .7, .5, .3, .1)"
    "iDur = p3"
    "iAmp = ampdb(p4) * 5"
-   "iFreq = mtof:i(p5)"
+   "iFreq = p5"
    "ipan1 = p6"
    "ipan2 = p7"
    "kPan = line:k(ipan1,p3,ipan2)"
@@ -50,13 +60,13 @@
 
 (defcsinstr sineunitenvelope
   (:type :instrument)
-  (:pfields amp midi pan1 pan2 suspcent suscenterpcent)
+  (:pfields amp freq pan1 pan2 suspcent suscenterpcent)
   (:outputs (leftout rightout))
   (:body
    "iSine = ftgenonce:i(0, 0, 4096, 10, 1)"
    "iDur = p3"
    "iAmp = ampdb(p4) * 5"
-   "iFreq = mtof:i(p5)"
+   "iFreq = p5"
    "ipan1 = p6"
    "ipan2 = p7"
    "kPan = line:k(ipan1,p3,ipan2)"
@@ -79,7 +89,7 @@
 
 (defcsinstr sawdrone
   (:type :instrument)
-  (:pfields amp midi pan1 pan2)
+  (:pfields amp freq pan1 pan2)
   (:outputs (leftout rightout))
   (:body
    "iSine = ftgenonce:i(0, 0, 4096, 10, 1)"
@@ -87,7 +97,7 @@
    "iSaw = ftgenonce:i(0, 0, 4096, 10, 1, .5, .3, .25, .2, .167, .14, .125, .111)"
    "iDur = p3"
    "iAmp = ampdb(p4) * 5"
-   "iFreq = mtof:i(p5)"
+   "iFreq = p5"
    "ipan1 = p6"
    "ipan2 = p7"
    "kPan = line:k(ipan1,p3,ipan2)"
@@ -115,13 +125,13 @@
 
 (defcsinstr sawunitenvelope
   (:type :instrument)
-  (:pfields amp midi pan1 pan2 suspcent suscenterpcent)
+  (:pfields amp freq pan1 pan2 suspcent suscenterpcent)
   (:outputs (leftout rightout))
   (:body
    "iSaw = ftgenonce:i(0, 0, 4096, 10, 1, .5, .3, .25, .2, .167, .14, .125, .111)"
    "iDur = p3"
    "iAmp = ampdb(p4) * 5"
-   "iFreq = mtof:i(p5)"
+   "iFreq = p5"
    "ipan1 = p6"
    "ipan2 = p7"
    "kPan = line:k(ipan1,p3,ipan2)"
@@ -146,12 +156,12 @@
 
 (defcsinstr samplerreverb
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2 skiptime atk rel rvbtime rvbgain)
+  (:pfields file amp freq pan1 pan2 skiptime atk rel rvbtime rvbgain)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iSkip = max(0, p9)"
@@ -199,12 +209,12 @@
 
 (defcsinstr samplerraw
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2)
+  (:pfields file amp freq pan1 pan2)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
 
@@ -241,12 +251,12 @@
 
 (defcsinstr samplerunitenv
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2 sustain center cutoff1 cutoff2 q skiptime)
+  (:pfields file amp freq pan1 pan2 sustain center cutoff1 cutoff2 q skiptime)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iSus = min(0.999, max(0.0, p9))"
@@ -296,12 +306,12 @@
 
 (defcsinstr samplerunitenvbp
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2 sustain center cf1 cf2 bw1 bw2 skiptime)
+  (:pfields file amp freq pan1 pan2 sustain center cf1 cf2 bw1 bw2 skiptime)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iSus = min(0.999, max(0.0, p9))"
@@ -353,12 +363,12 @@
 
 (defcsinstr samplerunitenvdist
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2 sustain center distin distout curvepos curveneg lpf1 lpf2 lpfq skiptime)
+  (:pfields file amp freq pan1 pan2 sustain center distin distout curvepos curveneg lpf1 lpf2 lpfq skiptime)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iSus = min(0.999, max(0.0, p9))"
@@ -415,12 +425,12 @@
 
 (defcsinstr samplerunitenvpeq
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2 sustain center cf1 cf2 q1 q2 gain1 gain2 filtertype skiptime)
+  (:pfields file amp freq pan1 pan2 sustain center cf1 cf2 q1 q2 gain1 gain2 filtertype skiptime)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iSus = min(0.999, max(0.0, p9))"
@@ -476,14 +486,14 @@
 
 (defcsinstr samplersahenv
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2 sustain center lpf1 lpf2 lpfq skiptime hpf1 hpf2 rate1lo rate1hi rate2lo rate2hi rate3)
+  (:pfields file amp freq pan1 pan2 sustain center lpf1 lpf2 lpfq skiptime hpf1 hpf2 rate1lo rate1hi rate2lo rate2hi rate3)
   (:globals
    "giBipolarPhasor ftgen 15, 0, 8192, 7, -1, 8192, 1")
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iSus = min(0.999, max(0.0, p9))"
@@ -555,7 +565,7 @@
 
 (defcsinstr samplercrossenv
   (:type :instrument)
-  (:pfields filea fileb amp midi pan1 pan2 sustain center lpf1 lpf2 lpfq skipa skipb fftsize bias1 bias2)
+  (:pfields filea fileb amp freq pan1 pan2 sustain center lpf1 lpf2 lpfq skipa skipb fftsize bias1 bias2)
   (:globals
    "giCrossHamming ftgen 14, 0, 4096, 20, 2, 1")
   (:outputs (leftout rightout))
@@ -563,7 +573,7 @@
    "SfileA = p4"
    "SfileB = p5"
    "iAmp = ampdb(p6)"
-   "iMidi = p7"
+   "iFreq = p7"
    "iPan1 = p8"
    "iPan2 = p9"
    "iSus = min(0.999, max(0.0, p10))"
@@ -619,11 +629,11 @@
 
 (defcsinstr noisewhite
   (:type :instrument)
-  (:pfields amp midi pan1 pan2)
+  (:pfields amp freq pan1 pan2)
   (:outputs (leftout rightout))
   (:body
    "iAmp = ampdb(p4)"
-   "iMidi = p5"
+   "iFreq = p5"
    "iPan1 = p6"
    "iPan2 = p7"
 
@@ -646,11 +656,11 @@
 
 (defcsinstr noispitched
   (:type :instrument)
-  (:pfields amp midi pan1 pan2 cf bw)
+  (:pfields amp freq pan1 pan2 cf bw)
   (:outputs (leftout rightout))
   (:body
    "iAmp = ampdb(p4)"
-   "iMidi = p5"
+   "iFreq = p5"
    "iPan1 = p6"
    "iPan2 = p7"
    "iCf = max(20, p8)"
@@ -675,12 +685,12 @@
 
 (defcsinstr noiseunitenv
   (:type :instrument)
-  (:pfields amp midi pan1 pan2 sustain center cutoff1 cutoff2 q)
+  (:pfields amp freq pan1 pan2 sustain center cutoff1 cutoff2 q)
   (:outputs (leftout rightout))
   (:body
    "iDur = p3"
    "iAmp = ampdb(p4)"
-   "iMidi = p5"
+   "iFreq = p5"
    "iPan1 = p6"
    "iPan2 = p7"
    "iSus = min(0.999, max(0.0, p8))"
@@ -713,11 +723,11 @@
 
 (defcsinstr noisetambourine
   (:type :instrument)
-  (:pfields amp midi pan1 pan2)
+  (:pfields amp freq pan1 pan2)
   (:outputs (leftout rightout))
   (:body
    "iAmp = ampdb(p4)"
-   "iMidi = p5"
+   "iFreq = p5"
    "iPan1 = p6"
    "iPan2 = p7"
 
@@ -750,12 +760,12 @@
 
 (defcsinstr noiseunitenvbp
   (:type :instrument)
-  (:pfields amp midi pan1 pan2 sustain center cf1 cf2 bw1 bw2)
+  (:pfields amp freq pan1 pan2 sustain center cf1 cf2 bw1 bw2)
   (:outputs (leftout rightout))
   (:body
    "iDur = p3"
    "iAmp = ampdb(p4)"
-   "iMidi = p5"
+   "iFreq = p5"
    "iPan1 = p6"
    "iPan2 = p7"
    "iSus = min(0.999, max(0.0, p8))"
@@ -790,14 +800,14 @@
 
 (defcsinstr noisesahenv
   (:type :instrument)
-  (:pfields amp midi pan1 pan2 sustain center lpf1 lpf2 lpfq hpf1 hpf2 rate1lo rate1hi rate2lo rate2hi rate3)
+  (:pfields amp freq pan1 pan2 sustain center lpf1 lpf2 lpfq hpf1 hpf2 rate1lo rate1hi rate2lo rate2hi rate3)
   (:globals
    "giBipolarPhasor ftgen 15, 0, 8192, 7, -1, 8192, 1")
   (:outputs (leftout rightout))
   (:body
    "iDur = p3"
    "iAmp = ampdb(p4)"
-   "iMidi = p5"
+   "iFreq = p5"
    "iPan1 = p6"
    "iPan2 = p7"
 
@@ -853,14 +863,14 @@
 
 (defcsinstr noisesahenvdist
   (:type :instrument)
-  (:pfields amp midi pan1 pan2 sustain center lpf1 lpf2 lpfq hpf1 hpf2 rate1lo rate1hi rate2lo rate2hi rate3 rescf1 rescf2 res1 res2 dist1 dist2)
+  (:pfields amp freq pan1 pan2 sustain center lpf1 lpf2 lpfq hpf1 hpf2 rate1lo rate1hi rate2lo rate2hi rate3 rescf1 rescf2 res1 res2 dist1 dist2)
   (:globals
    "giBipolarPhasor ftgen 15, 0, 8192, 7, -1, 8192, 1")
   (:outputs (leftout rightout))
   (:body
    "iDur = p3"
    "iAmp = ampdb(p4)"
-   "iMidi = p5"
+   "iFreq = p5"
    "iPan1 = p6"
    "iPan2 = p7"
 
@@ -927,14 +937,14 @@
 
 (defcsinstr fmbasic
   (:type :instrument)
-  (:pfields amp midi pan1 pan2 factor index)
+  (:pfields amp freq pan1 pan2 factor index)
   (:globals
    "giFmSine ftgen 201, 0, 8192, 10, 1"
    "giFmSine2 ftgen 203, 0, 8192, 10, 1")
   (:outputs (leftout rightout))
   (:body
    "iAmp = ampdb(p4)"
-   "iFreq = mtof:i(p5)"
+   "iFreq = p5"
    "iPan1 = p6"
    "iPan2 = p7"
    "iFactor = max(0.001, p8)"
@@ -962,7 +972,7 @@
 
 (defcsinstr fmclarinet
   (:type :instrument)
-  (:pfields amp midi pan1 pan2 imax)
+  (:pfields amp freq pan1 pan2 imax)
   (:globals
    "giFmCore ftgen 210, 0, 8192, 10, 1"
    "giClarAmp ftgen 211, 0, 8192, 7, 0, 512, 1, 6144, 0.7, 1536, 0"
@@ -971,7 +981,7 @@
   (:body
    "iDur = p3"
    "iAmp = ampdb(p4)"
-   "iFreq = mtof:i(p5)"
+   "iFreq = p5"
    "iPan1 = p6"
    "iPan2 = p7"
    "iMax = max(0, p8)"
@@ -999,7 +1009,7 @@
 
 (defcsinstr fmwooddrum
   (:type :instrument)
-  (:pfields amp midi pan1 pan2)
+  (:pfields amp freq pan1 pan2)
   (:globals
    "giFmCore ftgen 210, 0, 8192, 10, 1"
    "giWoodAmp ftgen 251, 0, 8192, 7, 0, 128, 1, 256, 0.8, 7808, 0"
@@ -1008,7 +1018,7 @@
   (:body
    "iDur = p3"
    "iAmp = ampdb(p4)"
-   "iFreq = mtof:i(p5)"
+   "iFreq = p5"
    "iPan1 = p6"
    "iPan2 = p7"
 
@@ -1034,7 +1044,7 @@
 
 (defcsinstr fmstring
   (:type :instrument)
-  (:pfields amp midi pan1 pan2 rise dec vibdel vibwth vibrate)
+  (:pfields amp freq pan1 pan2 rise dec vibdel vibwth vibrate)
   (:globals
    "giFmCore ftgen 210, 0, 8192, 10, 1"
    "giVib ftgen 1, 0, 8192, 10, 1")
@@ -1042,7 +1052,7 @@
   (:body
    "iDur = p3"
    "iAmp = ampdb(p4)"
-   "iFreq = mtof:i(p5)"
+   "iFreq = p5"
    "iPan1 = p6"
    "iPan2 = p7"
    "iRise = max(0.001, p8)"
@@ -1093,12 +1103,12 @@
 
 (defcsinstr vocodenoisesingle
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2 sustain center skiptime analysiscutoff bw analysiscf gencf)
+  (:pfields file amp freq pan1 pan2 sustain center skiptime analysiscutoff bw analysiscf gencf)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iSus = min(0.999, max(0.0, p9))"
@@ -1146,12 +1156,12 @@
 
 (defcsinstr vocodenoisesinglegliss
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2 sustain center skiptime analysiscutoff bw analysiscf gencf1 gencf2)
+  (:pfields file amp freq pan1 pan2 sustain center skiptime analysiscutoff bw analysiscf gencf1 gencf2)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iSus = min(0.999, max(0.0, p9))"
@@ -1201,13 +1211,13 @@
 
 (defcsinstr vocodenoisequadremap
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2 sustain center skiptime speed analysiscutoff bw
+  (:pfields file amp freq pan1 pan2 sustain center skiptime speed analysiscutoff bw
             acf1 acf2 acf3 acf4 gcf1 gcf2 gcf3 gcf4 lpf1 lpf2)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iSus = min(0.999, max(0.0, p9))"
@@ -1292,13 +1302,13 @@
 
 (defcsinstr vocodenoisequadscale
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2 sustain center skiptime speed analysiscutoff bw
+  (:pfields file amp freq pan1 pan2 sustain center skiptime speed analysiscutoff bw
             analysisbase analysisscalar genbase genscalar lpf1 lpf2)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iSus = min(0.999, max(0.0, p9))"
@@ -1390,14 +1400,14 @@
 
 (defcsinstr vocodenoisequadscaleremap
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2 sustain center skiptime speed analysiscutoff bw
+  (:pfields file amp freq pan1 pan2 sustain center skiptime speed analysiscutoff bw
             analysisbase analysisscalar genbase genscalar
             src1 src2 src3 src4 post1 post2 post3 post4 lpf1 lpf2)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iSus = min(0.999, max(0.0, p9))"
@@ -1497,13 +1507,13 @@
 
 (defcsinstr vocodenoiseoctscale
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2 sustain center skiptime speed analysiscutoff bw
+  (:pfields file amp freq pan1 pan2 sustain center skiptime speed analysiscutoff bw
             analysisbase analysisscalar genbase genscalar lpf1 lpf2)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iSus = min(0.999, max(0.0, p9))"
@@ -1627,7 +1637,7 @@
 
 (defcsinstr vocodenoiseoctscaleremap
   (:type :instrument)
-  (:pfields file amp midi pan1 pan2 sustain center skiptime speed analysiscutoff bw
+  (:pfields file amp freq pan1 pan2 sustain center skiptime speed analysiscutoff bw
             analysisbase analysisscalar genbase genscalar
             src1 src2 src3 src4 src5 src6 src7 src8
             post1 post2 post3 post4 post5 post6 post7 post8 lpf1 lpf2)
@@ -1635,7 +1645,7 @@
   (:body
    "Sfile = p4"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iSus = min(0.999, max(0.0, p9))"
@@ -1777,14 +1787,14 @@
 
 (defcsinstr phasevocoderead
   (:type :instrument)
-  (:pfields analysis amp midi pan1 pan2 bin start fadein fadeout)
+  (:pfields analysis amp freq pan1 pan2 bin start fadein fadeout)
   (:globals
    "giPvReadSine ftgen 1, 0, 8192, 10, 1")
   (:outputs (leftout rightout))
   (:body
    "iAnalysis = i(p4)"
    "iAmp = ampdb(p5)"
-   "iMidi = p6"
+   "iFreq = p6"
    "iPan1 = p7"
    "iPan2 = p8"
    "iBin = i(p9)"
@@ -2702,7 +2712,7 @@
 
 (defcsinstr ckanalog
   (:type :instrument)
-  (:pfields amp midi
+  (:pfields amp freq
             porta
             vco2ratio detunehz
             vcf1 vcf2 rez
@@ -2716,14 +2726,14 @@
    "giSquare    ftgen 3, 0, 1024, 7, 1, 512, 1, 0, -1, 512, -1"
    "giHalfTri   ftgen 4, 0, 4096, -7, 0, 1024, 0.5, 2048, -0.5, 1024, 0"
    "giFlat      ftgen 5, 0, 1024, 7, 0, 1024, 0"
-   "gkckanalog_last init 60")
+   "gkckanalog_last init 440")
   (:outputs (leftout rightout))
   (:body
    ;; ----------------------------------------------------
    ;; Base
    ;; ----------------------------------------------------
    "iLevel      = ampdb(p4)"
-   "iNote       = cpsmidinn(p5)"
+   "iNote       = p5"
    "iPort       = max(0.0001, i(p6))"
    "iVco2Ratio  = p7"
    "iDet        = p8"
@@ -2742,11 +2752,11 @@
    ;; Simple mono glide memory
    ;; Best for monophonic usage
    ;; ----------------------------------------------------
-   "iPrevMidi   = i(gkckanalog_last)"
+   "iPrevFreq   = i(gkckanalog_last)"
    "gkckanalog_last = p5"
    "iHoldTime   = max(0.0001, p3 - iPort)"
-   "kMidi       linseg iPrevMidi, iPort, p5, iHoldTime, p5"
-   "kFreq       = cpsmidinn(kMidi)"
+   "kFreq       linseg iPrevFreq, iPort, p5, iHoldTime, p5"
+   "kFreq       = kFreq"
 
    ;; ----------------------------------------------------
    ;; Filter + amp contour
@@ -2797,7 +2807,7 @@
 
 (defcsinstr cmjanalogpad
   (:type :instrument)
-  (:pfields amp midi pan1 pan2)
+  (:pfields amp freq pan1 pan2)
   (:outputs (leftout rightout))
   (:body
    ;; ----------------------------------------------------
@@ -2812,7 +2822,7 @@
    ;; ----------------------------------------------------
    "ifdbk       = 0.6"
    "iamp        = 1"
-   "ipor        = cpsmidinn(p5)"
+   "ipor        = p5"
    "imod1       = 2 * ipor"
    "indx1       = 3"
    "imod2       = 1.33 * ipor"
@@ -2863,7 +2873,7 @@
    "aL, aR      pan2 asig, kpan"
    "outleta \"leftout\", aL"
    "outleta \"rightout\", aR")
-  (:doc "AnalogPad adapted faithfully from Comajuncosas AnalogPad CSD version, using MIDI notes and k-rate stereo panning."))
+  (:doc "AnalogPad adapted faithfully from Comajuncosas AnalogPad CSD version, using frequency input and k-rate stereo panning."))
 
 
 ;;; -------------------------------------------------------
@@ -3263,7 +3273,7 @@
 
 (defcsinstr analog1
   (:type :instrument)
-  (:pfields amp midi wave pw
+  (:pfields amp freq wave pw
             att hold dec sus rel
             cutoff res filttype
             pan1 pan2)
@@ -3274,7 +3284,7 @@
    ;; Core params
    ;; ----------------------------------------------------
    "kamp     = ampdb(p4)"
-   "kcps     = mtof(p5)"
+   "kcps     = p5"
    "iwave    = i(p6)"
    "kpw      = p7"
 
@@ -3351,7 +3361,7 @@
 
 (defcsinstr analog1b
   (:type :instrument)
-  (:pfields amp midi wave pw porta
+  (:pfields amp freq wave pw porta
             att hold dec sus rel
             fatt fhold fdec fsus frel
             cutoff envamt res filttype
@@ -3361,8 +3371,8 @@
   (:body
    "kamp        = ampdb(p4)"
    "kPorta      = max(0.0001, p8)"
-   "kMidi       portk p5, kPorta"
-   "kcps        = cpsmidinn(kMidi)"
+   "kFreq       portk p5, kPorta"
+   "kcps        = kFreq"
    "iwave       = i(p6)"
    "kpw         = p7"
 
@@ -3424,7 +3434,7 @@
 
 (defcsinstr analog1c
   (:type :instrument)
-  (:pfields amp midi wave
+  (:pfields amp freq wave
             pw pwmrate pwmdepth
             porta
             submix noisemix
@@ -3438,7 +3448,7 @@
   (:outputs (leftout rightout))
   (:body
    "kamp        = ampdb(p4)"
-   "kMidiBase   portk p5, max(0.0001, p10)"
+   "kFreqBase   portk p5, max(0.0001, p10)"
 
    ;; pitch env in semitones
    "iPEnvAmt    = i(p27)"
@@ -3447,8 +3457,8 @@
    "iPDec       = max(0.0001, i(p30))"
    "kPitchEnv   linseg iPEnvAmt, iPAtt, iPEnvAmt, iPHold, iPEnvAmt, iPDec, 0"
 
-   "kMidi       = kMidiBase + kPitchEnv"
-   "kcps        = cpsmidinn(kMidi)"
+   "kFreq       = kFreqBase * semitone(kPitchEnv)"
+   "kcps        = kFreq"
    "iwave       = i(p6)"
 
    ;; PWM
@@ -3534,7 +3544,7 @@
 
 (defcsinstr analog2
   (:type :instrument)
-  (:pfields amp midi
+  (:pfields amp freq
             wave1 pw1
             wave2 pw2 detune
             att hold dec sus rel
@@ -3547,7 +3557,7 @@
    ;; Core
    ;; ----------------------------------------------------
    "kamp        = ampdb(p4)"
-   "kcps1       = mtof(p5)"
+   "kcps1       = p5"
    "iwave1      = i(p6)"
    "kpw1        = p7"
    "iwave2      = i(p8)"
@@ -3624,7 +3634,7 @@
 
 (defcsinstr analog2b
   (:type :instrument)
-  (:pfields amp midi
+  (:pfields amp freq
             wave1 pw1 pwmrate1 pwmdepth1
             wave2 pw2 pwmrate2 pwmdepth2
             vco2interval detune mix2
@@ -3642,7 +3652,7 @@
    ;; Core pitch / portamento
    ;; ----------------------------------------------------
    "kamp        = ampdb(p4)"
-   "kMidiBase   portk p5, max(0.0001, p17)"
+   "kFreqBase   portk p5, max(0.0001, p17)"
 
    ;; ----------------------------------------------------
    ;; Osc 1 PWM
@@ -3668,8 +3678,8 @@
    "kDetune     = p15"
    "kMix2       = min(1, max(0, p16))"
 
-   "kcps1       = cpsmidinn(kMidiBase)"
-   "kcps2       = cpsmidinn(kMidiBase + kInterval) * pow(2, kDetune / 1200)"
+   "kcps1       = kFreqBase"
+   "kcps2       = kFreqBase * semitone(kInterval) * pow(2, kDetune / 1200)"
 
    ;; ----------------------------------------------------
    ;; Amp envelope AHDSR
@@ -3760,7 +3770,7 @@
 
 (defcsinstr analog2c
   (:type :instrument)
-  (:pfields amp midi
+  (:pfields amp freq
             wave1 pw1 pwmrate1 pwmdepth1
             wave2 pw2 pwmrate2 pwmdepth2
             vco2interval detune mix2
@@ -3781,7 +3791,7 @@
    ;; ----------------------------------------------------
    "kamp        = ampdb(p4)"
    "kPorta      = max(0.0001, p17)"
-   "kMidiBase   portk p5, kPorta"
+   "kFreqBase   portk p5, kPorta"
 
    ;; ----------------------------------------------------
    ;; Pitch envelope (semitones)
@@ -3792,9 +3802,9 @@
    "iPDec       = max(0.0001, i(p38))"
    "kPitchEnv   linseg iPEnvAmt, iPAtt, iPEnvAmt, iPHold, iPEnvAmt, iPDec, 0"
 
-   "kMidi       = kMidiBase + kPitchEnv"
-   "kcps1       = cpsmidinn(kMidi)"
-   "kcps2       = cpsmidinn(kMidi + p14) * pow(2, p15 / 1200)"
+   "kFreq       = kFreqBase * semitone(kPitchEnv)"
+   "kcps1       = kFreq"
+   "kcps2       = kFreq * semitone(p14) * pow(2, p15 / 1200)"
    "kcpsSub     = kcps1 * 0.5"
 
    ;; ----------------------------------------------------
@@ -3914,7 +3924,7 @@
 
 (defcsinstr analog2d
   (:type :instrument)
-  (:pfields amp midi
+  (:pfields amp freq
             wave1 pw1 pwmrate1 pwmdepth1
             wave2 pw2 pwmrate2 pwmdepth2
             vco2interval detune mix2
@@ -3937,7 +3947,7 @@
    ;; ----------------------------------------------------
    "kamp        = ampdb(p4)"
    "kPorta      = max(0.0001, p17)"
-   "kMidiBase   portk p5, kPorta"
+   "kFreqBase   portk p5, kPorta"
 
    ;; ----------------------------------------------------
    ;; Pitch envelope (in semitones)
@@ -3948,9 +3958,9 @@
    "iPDec       = max(0.0001, i(p38))"
    "kPitchEnv   linseg iPEnvAmt, iPAtt, iPEnvAmt, iPHold, iPEnvAmt, iPDec, 0"
 
-   "kMidi       = kMidiBase + kPitchEnv"
-   "kcps1       = cpsmidinn(kMidi)"
-   "kcps2base   = cpsmidinn(kMidi + p14) * pow(2, p15 / 1200)"
+   "kFreq       = kFreqBase * semitone(kPitchEnv)"
+   "kcps1       = kFreq"
+   "kcps2base   = kFreq * semitone(p14) * pow(2, p15 / 1200)"
    "kcpsSub     = kcps1 * 0.5"
 
    ;; ----------------------------------------------------
@@ -4086,12 +4096,12 @@
 
 (defcsinstr fm1
   (:type :instrument)
-  (:pfields amp midi mod index1 index2 rise dec pan1 pan2)
+  (:pfields amp freq mod index1 index2 rise dec pan1 pan2)
   (:outputs (leftout rightout))
   (:body
    "iSine = ftgenonce:i(0, 0, 16384, 10, 1)"
    "kamp = ampdb:k(p4)"
-   "kcps = mtof:k(p5)"
+   "kcps = p5"
    "kmod = p6"
    "indx1 = p7"
    "indx2 = p8"
@@ -4115,22 +4125,27 @@
 
 (defcsinstr night
   (:type :instrument)
-  (:pfields amp midi pan1 pan2)
+  (:pfields amp freq pan1 pan2)
   (:outputs (leftout rightout))
   (:body
    "; String-pad borrowed from the piece \"Bay at Night\""
    "iwave = ftgenonce:i(0, 0, 4096, 10, 1, .5, .33, .25, .0, .1, .1, .1)"
    "iamp = ampdb(p4)"
-   "ihz = mtof:i(p5)"
+   "ihz = p5"
    "ipan1 = p6"
    "ipan2 = p7"
-   "kPan = line:k(ipan1,p3,ipan2)"
-   "kctrl = linseg:k(0, p3/4, iamp, p3/2, 0)"
-   "afund = poscil:a(kctrl, ihz, iwave)"
-   "acel1 = poscil:a(kctrl, ihz - .1, iwave)"
-   "acel2 = poscil:a(kctrl, ihz + .1, iwave)"
+   "kPan = line:k(ipan1, p3, ipan2)"
+   "kctrl = linseg:k(0, p3*0.25, iamp, p3*0.50, iamp, p3*0.25, 0)"
+
+   "afund = poscil:a(kctrl * 0.333, ihz, iwave)"
+   "acel1 = poscil:a(kctrl * 0.333, ihz - 0.1, iwave)"
+   "acel2 = poscil:a(kctrl * 0.333, ihz + 0.1, iwave)"
    "asig = afund + acel1 + acel2"
-   "asig butterlp asig, (p5+125)*40+900"
+
+   ;; cutoff compatible :freq
+   "kCut = min(sr * 0.45, max(80, ihz * 8 + 900))"
+   "asig butterlp asig, kCut"
+
    "aSigL = asig * cos(kPan * $M_PI_2)"
    "aSigR = asig * sin(kPan * $M_PI_2)"
    "outleta \"leftout\", aSigL"
@@ -4160,7 +4175,7 @@
    "klh init 1"
    "kmul rspline 0.3, 0.82, 0.04, 0.2"
    "kamp rspline 0.02, 3, 0.05, 0.1"
-   "a1 gbuzz kenv*kamp, cpsmidinn(knote)*semitone(kdtn), 75, 1, kmul^1.75, iSine"
+   "a1 gbuzz kenv*kamp, knote*semitone(kdtn), 75, 1, kmul^1.75, iSine"
    "a1 dcblock2 a1"
    "a1 = a1 * 10"
    "kpan rspline 0, 1, 0.1, 1"
@@ -4176,7 +4191,7 @@
 
 (defcsinstr pad1
   (:type :instrument)
-  (:pfields amp midi rise dec wave)
+  (:pfields amp freq rise dec wave)
   (:outputs (leftout rightout))
   (:body
    "iDur = p3"
@@ -4189,9 +4204,9 @@
    "kDet1 = randomh(-0.3, 0.3, 0.5)"
    "kDet2 = randomh(-0.3, 0.3, 0.33)"
    "kDet3 = randomh(-0.3, 0.3, 0.25)"
-   "kFreq1 = mtof(iNote + kDet1)"
-   "kFreq2 = mtof(iNote + kDet2)"
-   "kFreq3 = mtof(iNote + kDet3)"
+   "kFreq1 = iNote * semitone(kDet1)"
+   "kFreq2 = iNote * semitone(kDet2)"
+   "kFreq3 = iNote * semitone(kDet3)"
    "a1 = poscil(aEnv * kamp * 0.33, kFreq1, iWave)"
    "a2 = poscil(aEnv * kamp * 0.33, kFreq2, iWave)"
    "a3 = poscil(aEnv * kamp * 0.33, kFreq3, iWave)"
@@ -4276,13 +4291,13 @@
 
 (defcsinstr grain2
   (:type :instrument)
-  (:pfields amp midi fn gdur ovrlp rise dec rndvarfrq1 rndvarfrq2 pan1 pan2)
+  (:pfields amp freq fn gdur ovrlp rise dec rndvarfrq1 rndvarfrq2 pan1 pan2)
   (:outputs (leftout rightout))
   (:body
    "iwfn = ftgenonce:i(0, 0, 1025, 20, 2, 1)"
    "iDur = p3"
    "kamp = ampdb:k(p4)"
-   "kcps = mtof:k(p5)"
+   "kcps = p5"
    "kfn = p6"
    "kgdur = p7"
    "iovrlp = p8"
@@ -4312,7 +4327,7 @@
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
-   "kgain = 30"
+   "kgain = 2.5"
    "kamp = ampdb(p5) * kgain"
    "kfreq = p6"
    "kpitch = p7"
