@@ -26,6 +26,7 @@
 (defcsinstr sinedrone
   (:type :instrument)
   (:pfields amp freq pan1 pan2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
    "iSine = ftgenonce:i(0, 0, 4096, 10, 1)"
@@ -61,6 +62,7 @@
 (defcsinstr sineunitenvelope
   (:type :instrument)
   (:pfields amp freq pan1 pan2 suspcent suscenterpcent)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :suspcent 0.7 :suscenterpcent 0.5)
   (:outputs (leftout rightout))
   (:body
    "iSine = ftgenonce:i(0, 0, 4096, 10, 1)"
@@ -90,6 +92,7 @@
 (defcsinstr sawdrone
   (:type :instrument)
   (:pfields amp freq pan1 pan2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
    "iSine = ftgenonce:i(0, 0, 4096, 10, 1)"
@@ -126,6 +129,7 @@
 (defcsinstr sawunitenvelope
   (:type :instrument)
   (:pfields amp freq pan1 pan2 suspcent suscenterpcent)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :suspcent 0.7 :suscenterpcent 0.5)
   (:outputs (leftout rightout))
   (:body
    "iSaw = ftgenonce:i(0, 0, 4096, 10, 1, .5, .3, .25, .2, .167, .14, .125, .111)"
@@ -157,6 +161,9 @@
 (defcsinstr samplerreverb
   (:type :instrument)
   (:pfields file amp freq pan1 pan2 skiptime atk rel rvbtime rvbgain)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :skiptime 0 :atk 0.01 :rel 0.2 :rvbtime 1.5 :rvbgain 0)
+  (:deprecated freq)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -178,7 +185,7 @@
    "  aSig diskin2 Sfile, 1, iSkip, 0"
    "  aDry = aSig * kAmp"
    "  aRvb reverb aSig, iRvbTime"
-   "  aMix = aDry + (aRvb * iRvbGain)"
+   "  aMix = aDry + (aRvb * iRvbGain * kAmp)"
    "  aL, aR pan2 aMix, kPan"
    "else"
    "  aL0, aR0 diskin2 Sfile, 1, iSkip, 0"
@@ -186,8 +193,8 @@
    "  aDryR = aR0 * kAmp"
    "  aRvbL reverb aL0, iRvbTime"
    "  aRvbR reverb aR0, iRvbTime"
-   "  aL1 = aDryL + (aRvbL * iRvbGain)"
-   "  aR1 = aDryR + (aRvbR * iRvbGain)"
+   "  aL1 = aDryL + (aRvbL * iRvbGain * kAmp)"
+   "  aR1 = aDryR + (aRvbR * iRvbGain * kAmp)"
    "  aMid = (aL1 + aR1) * 0.5"
    "  aSide = (aL1 - aR1) * 0.5"
    "  aMonoL = aMid * cos(kPan * $M_PI_2)"
@@ -200,7 +207,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Sound-file player with local reverb, envelope, skip time and moving pan."))
 
 ;;; -------------------------------------------------------
 ;;; SAMPLERRAW
@@ -210,6 +218,9 @@
 (defcsinstr samplerraw
   (:type :instrument)
   (:pfields file amp freq pan1 pan2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5)
+  (:deprecated freq)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -242,7 +253,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Direct mono/stereo sound-file playback with amplitude envelope and moving pan."))
 
 ;;; -------------------------------------------------------
 ;;; SAMPLERUNITENV
@@ -252,6 +264,9 @@
 (defcsinstr samplerunitenv
   (:type :instrument)
   (:pfields file amp freq pan1 pan2 sustain center cutoff1 cutoff2 q skiptime)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :cutoff1 8000 :cutoff2 2000 :q 1 :skiptime 0)
+  (:deprecated freq)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -297,7 +312,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Sound-file player with proportional envelope and moving low-pass filter."))
 
 ;;; -------------------------------------------------------
 ;;; SAMPLERUNITENVBP
@@ -307,6 +323,9 @@
 (defcsinstr samplerunitenvbp
   (:type :instrument)
   (:pfields file amp freq pan1 pan2 sustain center cf1 cf2 bw1 bw2 skiptime)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :cf1 1000 :cf2 2000 :bw1 200 :bw2 200 :skiptime 0)
+  (:deprecated freq)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -354,7 +373,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Sound-file player with proportional envelope and moving band-pass filter."))
 
 ;;; -------------------------------------------------------
 ;;; SAMPLERUNITENVDIST
@@ -364,6 +384,9 @@
 (defcsinstr samplerunitenvdist
   (:type :instrument)
   (:pfields file amp freq pan1 pan2 sustain center distin distout curvepos curveneg lpf1 lpf2 lpfq skiptime)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :distin 0 :distout 0 :curvepos 1 :curveneg 1 :lpf1 8000 :lpf2 2000 :lpfq 1 :skiptime 0)
+  (:deprecated freq)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -416,7 +439,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Sound-file player with proportional envelope, waveshaping distortion and moving low-pass filter."))
 
 ;;; -------------------------------------------------------
 ;;; SAMPLERUNITENVPEQ
@@ -426,6 +450,9 @@
 (defcsinstr samplerunitenvpeq
   (:type :instrument)
   (:pfields file amp freq pan1 pan2 sustain center cf1 cf2 q1 q2 gain1 gain2 filtertype skiptime)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :cf1 1000 :cf2 2000 :q1 1 :q2 1 :gain1 1 :gain2 1 :filtertype 0 :skiptime 0)
+  (:deprecated freq)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -477,7 +504,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Sound-file player with proportional envelope and time-varying parametric EQ."))
 
 ;;; -------------------------------------------------------
 ;;; SAMPLERSAHENV
@@ -487,6 +515,9 @@
 (defcsinstr samplersahenv
   (:type :instrument)
   (:pfields file amp freq pan1 pan2 sustain center lpf1 lpf2 lpfq skiptime hpf1 hpf2 rate1lo rate1hi rate2lo rate2hi rate3)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :lpf1 8000 :lpf2 2000 :lpfq 1 :skiptime 0 :hpf1 20 :hpf2 20 :rate1lo 1 :rate1hi 10 :rate2lo 1 :rate2hi 10 :rate3 1)
+  (:deprecated freq)
+  (:required file)
   (:globals
    "giBipolarPhasor ftgen 15, 0, 8192, 7, -1, 8192, 1")
   (:outputs (leftout rightout))
@@ -556,7 +587,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Sound-file processor with proportional envelope, moving LP/HP filters and sample-and-hold modulation."))
 
 ;;; -------------------------------------------------------
 ;;; SAMPLERCROSSENV
@@ -566,6 +598,9 @@
 (defcsinstr samplercrossenv
   (:type :instrument)
   (:pfields filea fileb amp freq pan1 pan2 sustain center lpf1 lpf2 lpfq skipa skipb fftsize bias1 bias2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :lpf1 8000 :lpf2 2000 :lpfq 1 :skipa 0 :skipb 0 :fftsize 1024 :bias1 0.5 :bias2 0.5)
+  (:deprecated freq)
+  (:required filea fileb)
   (:globals
    "giCrossHamming ftgen 14, 0, 4096, 20, 2, 1")
   (:outputs (leftout rightout))
@@ -620,7 +655,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Cross-synthesis sampler combining two files through a moving spectral envelope."))
 
 
 ;;; -------------------------------------------------------
@@ -630,6 +666,8 @@
 (defcsinstr noisewhite
   (:type :instrument)
   (:pfields amp freq pan1 pan2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5)
+  (:deprecated freq)
   (:outputs (leftout rightout))
   (:body
    "iAmp = ampdb(p4)"
@@ -648,7 +686,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Envelope-shaped stereo white-noise source."))
 
 ;;; -------------------------------------------------------
 ;;; NOISEPITCHED
@@ -657,6 +696,8 @@
 (defcsinstr noispitched
   (:type :instrument)
   (:pfields amp freq pan1 pan2 cf bw)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :cf 1000 :bw 200)
+  (:deprecated freq)
   (:outputs (leftout rightout))
   (:body
    "iAmp = ampdb(p4)"
@@ -677,7 +718,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Band-pass filtered noise with controllable center frequency and bandwidth."))
 
 ;;; -------------------------------------------------------
 ;;; NOISEUNITENV
@@ -686,6 +728,8 @@
 (defcsinstr noiseunitenv
   (:type :instrument)
   (:pfields amp freq pan1 pan2 sustain center cutoff1 cutoff2 q)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :cutoff1 8000 :cutoff2 2000 :q 1)
+  (:deprecated freq)
   (:outputs (leftout rightout))
   (:body
    "iDur = p3"
@@ -715,7 +759,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "White-noise voice with proportional envelope and moving low-pass filter."))
 
 ;;; -------------------------------------------------------
 ;;; NOISETAMBOURINE
@@ -724,6 +769,8 @@
 (defcsinstr noisetambourine
   (:type :instrument)
   (:pfields amp freq pan1 pan2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5)
+  (:deprecated freq)
   (:outputs (leftout rightout))
   (:body
    "iAmp = ampdb(p4)"
@@ -752,7 +799,8 @@
    "aL, aR pan2 aSig, kPan"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Percussive filtered-noise voice for tambourine-like attacks."))
 
 ;;; -------------------------------------------------------
 ;;; NOISEUNITENVBP
@@ -761,6 +809,8 @@
 (defcsinstr noiseunitenvbp
   (:type :instrument)
   (:pfields amp freq pan1 pan2 sustain center cf1 cf2 bw1 bw2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :cf1 1000 :cf2 2000 :bw1 200 :bw2 200)
+  (:deprecated freq)
   (:outputs (leftout rightout))
   (:body
    "iDur = p3"
@@ -792,7 +842,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "White-noise voice with proportional envelope and moving band-pass filter."))
 
 ;;; -------------------------------------------------------
 ;;; NOISESAHENV
@@ -801,6 +852,8 @@
 (defcsinstr noisesahenv
   (:type :instrument)
   (:pfields amp freq pan1 pan2 sustain center lpf1 lpf2 lpfq hpf1 hpf2 rate1lo rate1hi rate2lo rate2hi rate3)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :lpf1 8000 :lpf2 2000 :lpfq 1 :hpf1 20 :hpf2 20 :rate1lo 1 :rate1hi 10 :rate2lo 1 :rate2hi 10 :rate3 1)
+  (:deprecated freq)
   (:globals
    "giBipolarPhasor ftgen 15, 0, 8192, 7, -1, 8192, 1")
   (:outputs (leftout rightout))
@@ -855,7 +908,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Filtered noise texture with a unit envelope, moving LP/HP filters and sample-and-hold modulation."))
 
 ;;; -------------------------------------------------------
 ;;; NOISESAHENVDIST
@@ -864,6 +918,8 @@
 (defcsinstr noisesahenvdist
   (:type :instrument)
   (:pfields amp freq pan1 pan2 sustain center lpf1 lpf2 lpfq hpf1 hpf2 rate1lo rate1hi rate2lo rate2hi rate3 rescf1 rescf2 res1 res2 dist1 dist2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :lpf1 8000 :lpf2 2000 :lpfq 1 :hpf1 20 :hpf2 20 :rate1lo 1 :rate1hi 10 :rate2lo 1 :rate2hi 10 :rate3 1 :rescf1 1000 :rescf2 2000 :res1 0.2 :res2 0.2 :dist1 0 :dist2 0)
+  (:deprecated freq)
   (:globals
    "giBipolarPhasor ftgen 15, 0, 8192, 7, -1, 8192, 1")
   (:outputs (leftout rightout))
@@ -929,7 +985,8 @@
    "aR dcblock2 aR"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Sample-and-hold noise texture with moving filters, resonance and distortion."))
 
 ;;; -------------------------------------------------------
 ;;; FMBASIC
@@ -938,6 +995,7 @@
 (defcsinstr fmbasic
   (:type :instrument)
   (:pfields amp freq pan1 pan2 factor index)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :factor 1 :index 1)
   (:globals
    "giFmSine ftgen 201, 0, 8192, 10, 1"
    "giFmSine2 ftgen 203, 0, 8192, 10, 1")
@@ -964,7 +1022,8 @@
    "aL, aR pan2 aSig, kPan"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Basic two-operator FM voice with controllable ratio and modulation index."))
 
 ;;; -------------------------------------------------------
 ;;; FMCLARINET
@@ -973,6 +1032,7 @@
 (defcsinstr fmclarinet
   (:type :instrument)
   (:pfields amp freq pan1 pan2 imax)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :imax 1)
   (:globals
    "giFmCore ftgen 210, 0, 8192, 10, 1"
    "giClarAmp ftgen 211, 0, 8192, 7, 0, 512, 1, 6144, 0.7, 1536, 0"
@@ -1001,7 +1061,8 @@
    "aL, aR pan2 aSig, kPan"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "FM clarinet model with a controllable maximum modulation index."))
 
 ;;; -------------------------------------------------------
 ;;; FMWOODDRUM
@@ -1010,6 +1071,7 @@
 (defcsinstr fmwooddrum
   (:type :instrument)
   (:pfields amp freq pan1 pan2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5)
   (:globals
    "giFmCore ftgen 210, 0, 8192, 10, 1"
    "giWoodAmp ftgen 251, 0, 8192, 7, 0, 128, 1, 256, 0.8, 7808, 0"
@@ -1036,7 +1098,8 @@
    "aL, aR pan2 aSig, kPan"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Short percussive FM voice designed for wooden-drum timbres."))
 
 ;;; -------------------------------------------------------
 ;;; FMSTRING
@@ -1045,6 +1108,7 @@
 (defcsinstr fmstring
   (:type :instrument)
   (:pfields amp freq pan1 pan2 rise dec vibdel vibwth vibrate)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :rise 0.01 :dec 0.2 :vibdel 5 :vibwth 0 :vibrate 5)
   (:globals
    "giFmCore ftgen 210, 0, 8192, 10, 1"
    "giVib ftgen 1, 0, 8192, 10, 1")
@@ -1094,7 +1158,8 @@
    "aL, aR pan2 aSig, kPan"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Evolving FM string voice with attack, decay and delayed vibrato."))
 
 
 ;;; -------------------------------------------------------
@@ -1104,6 +1169,9 @@
 (defcsinstr vocodenoisesingle
   (:type :instrument)
   (:pfields file amp freq pan1 pan2 sustain center skiptime analysiscutoff bw analysiscf gencf)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :skiptime 0 :analysiscutoff 20 :bw 200 :analysiscf 1000 :gencf 1000)
+  (:deprecated freq)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -1148,7 +1216,8 @@
    "aL dcblock2 aL"
    "aR dcblock2 aR"
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Single-band noise vocoder driven by a sound file."))
 
 ;;; -------------------------------------------------------
 ;;; VOCODENOISESINGLEGLISS
@@ -1157,6 +1226,9 @@
 (defcsinstr vocodenoisesinglegliss
   (:type :instrument)
   (:pfields file amp freq pan1 pan2 sustain center skiptime analysiscutoff bw analysiscf gencf1 gencf2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :skiptime 0 :analysiscutoff 20 :bw 200 :analysiscf 1000 :gencf1 1000 :gencf2 2000)
+  (:deprecated freq)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -1203,7 +1275,8 @@
    "aL dcblock2 aL"
    "aR dcblock2 aR"
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Single-band noise vocoder with a glissando between synthesis center frequencies."))
 
 ;;; -------------------------------------------------------
 ;;; VOCODENOISEQUADREMAP
@@ -1213,6 +1286,9 @@
   (:type :instrument)
   (:pfields file amp freq pan1 pan2 sustain center skiptime speed analysiscutoff bw
             acf1 acf2 acf3 acf4 gcf1 gcf2 gcf3 gcf4 lpf1 lpf2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :skiptime 0 :speed 1 :analysiscutoff 20 :bw 200 :acf1 200 :acf2 400 :acf3 800 :acf4 1600 :gcf1 200 :gcf2 400 :gcf3 800 :gcf4 1600 :lpf1 8000 :lpf2 2000)
+  (:deprecated freq)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -1294,7 +1370,8 @@
    "aL dcblock2 aL"
    "aR dcblock2 aR"
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Four-band noise vocoder with explicit analysis and synthesis center frequencies."))
 
 ;;; -------------------------------------------------------
 ;;; VOCODENOISEQUADSCALE
@@ -1304,6 +1381,9 @@
   (:type :instrument)
   (:pfields file amp freq pan1 pan2 sustain center skiptime speed analysiscutoff bw
             analysisbase analysisscalar genbase genscalar lpf1 lpf2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :skiptime 0 :speed 1 :analysiscutoff 20 :bw 200 :analysisbase 200 :analysisscalar 1 :genbase 200 :genscalar 1 :lpf1 8000 :lpf2 2000)
+  (:deprecated freq)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -1392,7 +1472,8 @@
    "aL dcblock2 aL"
    "aR dcblock2 aR"
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Four-band noise vocoder with scalable analysis and synthesis filter banks."))
 
 ;;; -------------------------------------------------------
 ;;; VOCODENOISEQUADSCALEREMAP
@@ -1403,6 +1484,9 @@
   (:pfields file amp freq pan1 pan2 sustain center skiptime speed analysiscutoff bw
             analysisbase analysisscalar genbase genscalar
             src1 src2 src3 src4 post1 post2 post3 post4 lpf1 lpf2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :skiptime 0 :speed 1 :analysiscutoff 20 :bw 200 :analysisbase 200 :analysisscalar 1 :genbase 200 :genscalar 1 :src1 1 :src2 2 :src3 3 :src4 4 :post1 1 :post2 2 :post3 3 :post4 4 :lpf1 8000 :lpf2 2000)
+  (:deprecated freq)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -1499,7 +1583,8 @@
    "aL dcblock2 aL"
    "aR dcblock2 aR"
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Four-band scalable noise vocoder with explicit band remapping."))
 
 ;;; -------------------------------------------------------
 ;;; VOCODENOISEOCTSCALE
@@ -1509,6 +1594,9 @@
   (:type :instrument)
   (:pfields file amp freq pan1 pan2 sustain center skiptime speed analysiscutoff bw
             analysisbase analysisscalar genbase genscalar lpf1 lpf2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :skiptime 0 :speed 1 :analysiscutoff 20 :bw 200 :analysisbase 200 :analysisscalar 1 :genbase 200 :genscalar 1 :lpf1 8000 :lpf2 2000)
+  (:deprecated freq)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -1629,7 +1717,8 @@
    "aL dcblock2 aL"
    "aR dcblock2 aR"
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Eight-band noise vocoder with scalable analysis and synthesis filter banks."))
 
 ;;; -------------------------------------------------------
 ;;; VOCODENOISEOCTSCALEREMAP
@@ -1641,6 +1730,9 @@
             analysisbase analysisscalar genbase genscalar
             src1 src2 src3 src4 src5 src6 src7 src8
             post1 post2 post3 post4 post5 post6 post7 post8 lpf1 lpf2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :sustain 0.7 :center 0.5 :skiptime 0 :speed 1 :analysiscutoff 20 :bw 200 :analysisbase 200 :analysisscalar 1 :genbase 200 :genscalar 1 :src1 1 :src2 2 :src3 3 :src4 4 :src5 5 :src6 6 :src7 7 :src8 8 :post1 1 :post2 2 :post3 3 :post4 4 :post5 5 :post6 6 :post7 7 :post8 8 :lpf1 8000 :lpf2 2000)
+  (:deprecated freq)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -1778,7 +1870,8 @@
    "aL dcblock2 aL"
    "aR dcblock2 aR"
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Eight-band noise vocoder with scalable banks and explicit source-to-output remapping."))
 
 
 ;;; -------------------------------------------------------
@@ -1788,6 +1881,9 @@
 (defcsinstr phasevocoderead
   (:type :instrument)
   (:pfields analysis amp freq pan1 pan2 bin start fadein fadeout)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :bin 0 :start 0 :fadein 0.01 :fadeout 0.2)
+  (:deprecated freq)
+  (:required analysis)
   (:globals
    "giPvReadSine ftgen 1, 0, 8192, 10, 1")
   (:outputs (leftout rightout))
@@ -1810,7 +1906,8 @@
 
    "aL, aR pan2 aSig, kPan"
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Reads a phase-vocoder analysis file with bin, start and fade controls."))
 
 
 ;;; -------------------------------------------------------
@@ -1820,6 +1917,7 @@
 (defcsinstr synthrezzy
   (:type :instrument)
   (:pfields amp freq sweep rez wave drive pan1 pan2)
+  (:defaults :amp -24 :freq 440 :sweep 2000 :rez 0.2 :wave 0 :drive 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:globals
    "giRezSine   ftgen 0, 0, 16384, 10, 1"
@@ -1868,6 +1966,7 @@
 (defcsinstr synthwaveformvibrato
   (:type :instrument)
   (:pfields amp freq atk rel vibdepth vibdelay vibrate wave1 wave2 xfade pan1 pan2)
+  (:defaults :amp -24 :freq 440 :atk 0.01 :rel 0.2 :vibdepth 0 :vibdelay 5 :vibrate 5 :wave1 0 :wave2 0 :xfade 0.05 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:globals
    "giWvVibSine   ftgen 0, 0, 16384, 10, 1"
@@ -1999,6 +2098,7 @@
             trem3start trem3end trem3amp
             trem4start trem4end trem4amp
             pan1 pan2)
+  (:defaults :amp -24 :freq 440 :suspct 0.7 :suscenter 0.5 :lpfstart 8000 :lpfend 2000 :lpfq 1 :wave 0 :widthstart 0.5 :widthend 0.5 :trem1start 1 :trem1end 1 :trem1amp 0 :trem2start 1 :trem2end 1 :trem2amp 0 :trem3start 1 :trem3end 1 :trem3amp 0 :trem4start 1 :trem4end 1 :trem4amp 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:globals
    "giSVAESQ_Sine ftgen 0, 0, 16384, 10, 1")
@@ -2112,7 +2212,8 @@
    "kPan = line:k(ipan1, p3, ipan2)"
    "aL, aR pan2 aMixSig, kPan"
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "VCO voice with proportional envelope, moving low-pass filter and four sine tremolo modulators."))
 
 ;;; -------------------------------------------------------
 ;;; SYNTHVCOAUDIOENVELOPESQUAREQUAD
@@ -2129,6 +2230,7 @@
             trem3start trem3end trem3amp
             trem4start trem4end trem4amp
             pan1 pan2)
+  (:defaults :amp -24 :freq 440 :suspct 0.7 :suscenter 0.5 :lpfstart 8000 :lpfend 2000 :lpfq 1 :wave 0 :widthstart 0.5 :widthend 0.5 :trem1start 1 :trem1end 1 :trem1amp 0 :trem2start 1 :trem2end 1 :trem2amp 0 :trem3start 1 :trem3end 1 :trem3amp 0 :trem4start 1 :trem4end 1 :trem4amp 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:globals
    "giSVAESQ_Sine   ftgen 0, 0, 16384, 10, 1"
@@ -2246,6 +2348,7 @@
             resstart resend
             diststart distend
             pan1 pan2)
+  (:defaults :amp -24 :freq 440 :suspct 0.7 :suscenter 0.5 :lpfstart 8000 :lpfend 2000 :lpfq 1 :wave 0 :widthstart 0.5 :widthend 0.5 :rcfstart 1000 :rcfend 2000 :resstart 0.2 :resend 0.2 :diststart 0 :distend 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:globals
    "giSVCD_Sine ftgen 0, 0, 16384, 10, 1")
@@ -2338,6 +2441,7 @@
 (defcsinstr plucktamhats
   (:type :instrument)
   (:pfields amp freq pan parm lpfreq)
+  (:defaults :amp -24 :freq 440 :pan 0.5 :parm 0.5 :lpfreq 1000)
   (:outputs (leftout rightout))
   (:body
    "iDur = p3"
@@ -2375,62 +2479,7 @@
             fmamp fmrise fmdec
             index vibdepth vibrate
             formantamp formantrise)
-  (:outputs (leftout rightout))
-  (:globals
-   "giPF1 ftgen 1, 0, 16384, 10, 1"
-   "giPF4 ftgen 4, 0, 2048, 19, .5, .5, 270, .5"
-   "giPF7 ftgen 7, 0, 1024, 7, 1, 1024, -1"
-   "giPF10 ftgen 10, 0, 2048, 19, .5, .5, 270, .5")
-  (:body
-   "iAmp = ampdb(p4) / 2"
-   "iFreq = p5"
-
-   "iPan = p6"
-   "ipluckamp = p7"
-   "ipluckdur = p8 * p3"
-   "ipluckoff = p3 - ipluckdur"
-
-   "ifmamp = p9"
-   "ifmrise = p10 * p3"
-   "ifmdec = p11 * p3"
-   "ifmoff = p3 - (ifmrise + ifmdec)"
-   "index = p12"
-   "ivibdepth = p13"
-   "ivibrate = p14"
-   "iformantamp = p15"
-   "iformantrise = p16 * p3"
-   "iformantdec = p3 - iformantrise"
-
-   ;; design original conservé
-   "kpluck linseg ipluckamp, ipluckdur, 0, ipluckoff, 0"
-   "apluck1 pluck iAmp, iFreq, iFreq, 0, 1"
-   "apluck2 pluck iAmp, iFreq * 1.003, iFreq * 1.003, 0, 1"
-   "apluck = kpluck * (apluck1 + apluck2)"
-
-   "kfm linseg 0, ifmrise, ifmamp, ifmdec, 0, ifmoff, 0"
-   "kndx = kfm * index"
-   "afm1 foscil iAmp, iFreq, 1, 7, kndx, 1"
-   "afm2 foscil iAmp, iFreq * 1.003, 1.003, 2.003, kndx, 1"
-   "afm = kfm * (afm1 + afm2)"
-
-   "kfrmnt linseg 0, iformantrise, iformantamp, iformantdec, 0"
-   "kvib oscil ivibdepth, ivibrate, 1"
-   "afrmnt1 fof iAmp, iFreq + kvib, 650, 0, 40, .003, .017, .007, 4, 1, 7, p3"
-   "afrmnt2 fof iAmp, (iFreq * 1.001) + kvib * .009, 650, 0, 40, .003, .017, .007, 10, 1, 7, p3"
-   "aformnt = kfrmnt * (afrmnt1 + afrmnt2)"
-
-   "aMixSig = (apluck + afm + aformnt)"
-
-   "aL, aR pan2 aMixSig, iPan"
-   "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR")
-  (:doc "A pluck that slowly morphs into a vocal, formant derived sound."))(defcsinstr pluckformant
-  (:type :instrument)
-  (:pfields amp freq pan
-            pluckamp pluckdur
-            fmamp fmrise fmdec
-            index vibdepth vibrate
-            formantamp formantrise)
+  (:defaults :amp -24 :freq 440 :pan 0.5 :pluckamp 1 :pluckdur 0.2 :fmamp 1 :fmrise 0.01 :fmdec 0.2 :index 1 :vibdepth 0 :vibrate 5 :formantamp 1 :formantrise 0.01)
   (:outputs (leftout rightout))
   (:globals
    "giPF1 ftgen 1, 0, 16384, 10, 1"
@@ -2505,44 +2554,7 @@
             function method parm1 parm2
             suspct suscenter
             lpfstart lpfend lpfq)
-  (:outputs (leftout rightout))
-  (:body
-   "iDur = p3"
-   "iAmp = ampdb(p4)"
-   "iFreq = p5"
-   "iPan = p6"
-
-   "iFunction = p7"
-   "iMethod = p8"
-   "iParm1 = p9"
-   "iParm2 = p10"
-
-   "iSusPcent = p11"
-   "iSusCenterPcent = p12"
-   "iCutoffStart = p13"
-   "iCutoffEnd = p14"
-   "kq = p15"
-
-   "iAttack = ((1 - iSusPcent) * iSusCenterPcent) * iDur"
-   "iRelease = ((1 - iSusPcent) * (1 - iSusCenterPcent)) * iDur"
-
-   "kAmp linen iAmp, iAttack, iDur, iRelease"
-   "kFreq linseg iCutoffStart, iDur, iCutoffEnd"
-
-   ;; design original conservé
-   "aSig pluck iAmp, iFreq, iFreq, iFunction, iMethod, iParm1, iParm2"
-   "aSig lowpass2 aSig, kFreq, kq"
-   "aMixSig = aSig"
-
-   "aL, aR pan2 aMixSig, iPan"
-   "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR")
-  (:doc "A single pluck with a unit envelope and variable low pass filter."))(defcsinstr pluckunitenvelope
-  (:type :instrument)
-  (:pfields amp freq pan
-            function method parm1 parm2
-            suspct suscenter
-            lpfstart lpfend lpfq)
+  (:defaults :amp -24 :freq 440 :pan 0.5 :function 0 :method 0 :parm1 0.5 :parm2 0.5 :suspct 0.7 :suscenter 0.5 :lpfstart 8000 :lpfend 2000 :lpfq 1)
   (:outputs (leftout rightout))
   (:body
    "iDur = p3"
@@ -2596,6 +2608,8 @@
 (defcsinstr diskin2
   (:type :instrument)
   (:pfields file amp speed skiptime wrap atk rel pan1 pan2)
+  (:defaults :amp -24 :speed 1 :skiptime 0 :wrap 0 :atk 0.01 :rel 0.2 :pan1 0.5 :pan2 0.5)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -2635,7 +2649,8 @@
    "aR = tanh(aR)"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Audio-file player with variable speed, start offset, wrapping, envelope and stereo pan."))
 
 ;;; -------------------------------------------------------
 ;;; LPOSCIL
@@ -2644,11 +2659,14 @@
 (defcsinstr lposcil
   (:type :instrument)
   (:pfields file amp speed loopstart loopend atk rel pan1 pan2)
+  (:defaults :amp -24 :speed 1 :loopstart 0 :loopend 44100 :atk 0.01 :rel 0.2 :pan1 0.5 :pan2 0.5)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
    "kAmp = ampdb:k(p5)"
-   "kSpeed = p6"
+   ;; lposcil is not reverse-safe on all supported Csound versions.
+   "kSpeed = max(0.001, abs(p6))"
    "kLoopStart = max(0, p7)"
    "kLoopEnd init 0"
    "iAtk = max(0.001, p9)"
@@ -2720,6 +2738,7 @@
             lfowave lforate1 lforate2
             ring
             pan1 pan2)
+  (:defaults :amp -24 :freq 440 :porta 0.01 :vco2ratio 1 :detunehz 0 :vcf1 8000 :vcf2 2000 :rez 0.2 :wav1 0 :wav2 0 :lfowave 0 :lforate1 5 :lforate2 5 :ring 0 :pan1 0.5 :pan2 0.5)
   (:globals
    "giSine      ftgen 1, 0, 8192, 10, 1"
    "giTri       ftgen 2, 0, 4096, 7, 0, 1024, 1, 2048, -1, 1024, 0"
@@ -2808,6 +2827,7 @@
 (defcsinstr cmjanalogpad
   (:type :instrument)
   (:pfields amp freq pan1 pan2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
    ;; ----------------------------------------------------
@@ -2889,6 +2909,8 @@
             lock
             fftsize decim
             pan1 pan2)
+  (:defaults :amp -24 :pos1 0 :pos2 1 :pitch 1 :lock 1 :fftsize 1024 :decim 4 :pan1 0.5 :pan2 0.5)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    ;; ----------------------------------------------------
@@ -2960,6 +2982,8 @@
             pan2
             panrate
             pandepth)
+  (:defaults :amp -24 :startpos 0 :speed 1 :pitch 1 :lock 1 :fftsize 1024 :decim 4 :freeze 0 :jitterdepth 0 :jitterrate 5 :att 0.01 :hold 0 :dec 0.2 :sus 0.7 :rel 0.2 :cutoff 8000 :res 0.2 :filttype 0 :panmode 0 :pan1 0.5 :pan2 0.5 :panrate 5 :pandepth 0)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    ;; ----------------------------------------------------
@@ -3115,6 +3139,8 @@
             pan2
             panrate
             pandepth)
+  (:defaults :amp -24 :startpos 0 :speed 1 :pitch 1 :lock 1 :fftsize 1024 :decim 4 :freeze 0 :jitterdepth 0 :jitterrate 5 :looplen 1 :xfade 0.05 :att 0.01 :hold 0 :dec 0.2 :sus 0.7 :rel 0.2 :cutoff 8000 :res 0.2 :filttype 0 :panmode 0 :pan1 0.5 :pan2 0.5 :panrate 5 :pandepth 0)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    ;; ----------------------------------------------------
@@ -3277,6 +3303,7 @@
             att hold dec sus rel
             cutoff res filttype
             pan1 pan2)
+  (:defaults :amp -24 :freq 440 :wave 0 :pw 0.5 :att 0.01 :hold 0 :dec 0.2 :sus 0.7 :rel 0.2 :cutoff 8000 :res 0.2 :filttype 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
 
@@ -3367,6 +3394,7 @@
             cutoff envamt res filttype
             lforate lfodepth drive
             pan1 pan2)
+  (:defaults :amp -24 :freq 440 :wave 0 :pw 0.5 :porta 0.01 :att 0.01 :hold 0 :dec 0.2 :sus 0.7 :rel 0.2 :fatt 0.01 :fhold 0 :fdec 0.2 :fsus 0.7 :frel 0.2 :cutoff 8000 :envamt 0 :res 0.2 :filttype 0 :lforate 5 :lfodepth 0 :drive 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
    "kamp        = ampdb(p4)"
@@ -3445,6 +3473,7 @@
             lforate lfodepth
             drive
             pan1 pan2)
+  (:defaults :amp -24 :freq 440 :wave 0 :pw 0.5 :pwmrate 0.5 :pwmdepth 0 :porta 0.01 :submix 0 :noisemix 0 :att 0.01 :hold 0 :dec 0.2 :sus 0.7 :rel 0.2 :fatt 0.01 :fhold 0 :fdec 0.2 :fsus 0.7 :frel 0.2 :cutoff 8000 :envamt 0 :res 0.2 :filttype 0 :penvamt 0 :patt 0.01 :phold 0 :pdec 0.2 :lforate 5 :lfodepth 0 :drive 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
    "kamp        = ampdb(p4)"
@@ -3550,6 +3579,7 @@
             att hold dec sus rel
             cutoff res filttype
             pan1 pan2)
+  (:defaults :amp -24 :freq 440 :wave1 0 :pw1 0.5 :wave2 0 :pw2 0.5 :detune 0 :att 0.01 :hold 0 :dec 0.2 :sus 0.7 :rel 0.2 :cutoff 8000 :res 0.2 :filttype 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
 
@@ -3645,6 +3675,7 @@
             lforate lfodepth
             drive
             pan1 pan2)
+  (:defaults :amp -24 :freq 440 :wave1 0 :pw1 0.5 :pwmrate1 0.5 :pwmdepth1 0 :wave2 0 :pw2 0.5 :pwmrate2 0.5 :pwmdepth2 0 :vco2interval 0 :detune 0 :mix2 0.5 :porta 0.01 :att 0.01 :hold 0 :dec 0.2 :sus 0.7 :rel 0.2 :fatt 0.01 :fhold 0 :fdec 0.2 :fsus 0.7 :frel 0.2 :cutoff 8000 :envamt 0 :res 0.2 :filttype 0 :lforate 5 :lfodepth 0 :drive 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
 
@@ -3784,6 +3815,7 @@
             lforate lfodepth
             drive
             pan1 pan2)
+  (:defaults :amp -24 :freq 440 :wave1 0 :pw1 0.5 :pwmrate1 0.5 :pwmdepth1 0 :wave2 0 :pw2 0.5 :pwmrate2 0.5 :pwmdepth2 0 :vco2interval 0 :detune 0 :mix2 0.5 :porta 0.01 :submix 0 :subwave 0 :noisemix 0 :att 0.01 :hold 0 :dec 0.2 :sus 0.7 :rel 0.2 :fatt 0.01 :fhold 0 :fdec 0.2 :fsus 0.7 :frel 0.2 :cutoff 8000 :envamt 0 :res 0.2 :filttype 0 :penvamt 0 :patt 0.01 :phold 0 :pdec 0.2 :lforate 5 :lfodepth 0 :drive 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
    ;; ----------------------------------------------------
@@ -3939,6 +3971,7 @@
             drive
             fmamt syncamt
             pan1 pan2)
+  (:defaults :amp -24 :freq 440 :wave1 0 :pw1 0.5 :pwmrate1 0.5 :pwmdepth1 0 :wave2 0 :pw2 0.5 :pwmrate2 0.5 :pwmdepth2 0 :vco2interval 0 :detune 0 :mix2 0.5 :porta 0.01 :submix 0 :subwave 0 :noisemix 0 :att 0.01 :hold 0 :dec 0.2 :sus 0.7 :rel 0.2 :fatt 0.01 :fhold 0 :fdec 0.2 :fsus 0.7 :frel 0.2 :cutoff 8000 :envamt 0 :res 0.2 :filttype 0 :penvamt 0 :patt 0.01 :phold 0 :pdec 0.2 :lforate 5 :lfodepth 0 :drive 0 :fmamt 0 :syncamt 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
 
@@ -4097,6 +4130,7 @@
 (defcsinstr fm1
   (:type :instrument)
   (:pfields amp freq mod index1 index2 rise dec pan1 pan2)
+  (:defaults :amp -24 :freq 440 :mod 1 :index1 1 :index2 1 :rise 0.01 :dec 0.2 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
    "iSine = ftgenonce:i(0, 0, 16384, 10, 1)"
@@ -4126,6 +4160,7 @@
 (defcsinstr night
   (:type :instrument)
   (:pfields amp freq pan1 pan2)
+  (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
    "; String-pad borrowed from the piece \"Bay at Night\""
@@ -4159,6 +4194,7 @@
 (defcsinstr trombone
   (:type :instrument)
   (:pfields amp note1 note2)
+  (:defaults :amp -24 :note1 110 :note2 220)
   (:outputs (leftout rightout))
   (:body
    "iSine = ftgenonce:i(0, 0, 4096, 10, 1)"
@@ -4192,6 +4228,7 @@
 (defcsinstr pad1
   (:type :instrument)
   (:pfields amp freq rise dec wave)
+  (:defaults :amp -24 :freq 440 :rise 0.01 :dec 0.2 :wave 0)
   (:outputs (leftout rightout))
   (:body
    "iDur = p3"
@@ -4232,6 +4269,7 @@
 (defcsinstr grain1
   (:type :instrument)
   (:pfields amp ft dens1 dens2 rise dec pan1 pan2)
+  (:defaults :amp -24 :ft 1 :dens1 20 :dens2 20 :rise 0.01 :dec 0.2 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
    "iWin = ftgenonce:i(0, 0, 1025, 20, 2, 1)"
@@ -4261,6 +4299,7 @@
 (defcsinstr grain1b
   (:type :instrument)
   (:pfields amp ft dens1 dens2 rise dec pan1 pan2 pitchfact)
+  (:defaults :amp -24 :ft 1 :dens1 20 :dens2 20 :rise 0.01 :dec 0.2 :pan1 0.5 :pan2 0.5 :pitchfact 1)
   (:outputs (leftout rightout))
   (:body
    "iWin = ftgenonce:i(0, 0, 1025, 20, 2, 1)"
@@ -4292,6 +4331,7 @@
 (defcsinstr grain2
   (:type :instrument)
   (:pfields amp freq fn gdur ovrlp rise dec rndvarfrq1 rndvarfrq2 pan1 pan2)
+  (:defaults :amp -24 :freq 440 :fn 1 :gdur 0.1 :ovrlp 4 :rise 0.01 :dec 0.2 :rndvarfrq1 1 :rndvarfrq2 1 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
    "iwfn = ftgenonce:i(0, 0, 1025, 20, 2, 1)"
@@ -4324,6 +4364,8 @@
 (defcsinstr diskgrain1
   (:type :instrument)
   (:pfields file amp freq pitch grsize prate envfn overlaps maxgrsize offset pan1 pan2)
+  (:defaults :amp -24 :freq 440 :pitch 1 :grsize 0.1 :prate 1 :envfn 1 :overlaps 4 :maxgrsize 0.1 :offset 0 :pan1 0.5 :pan2 0.5)
+  (:required file)
   (:outputs (leftout rightout))
   (:body
    "Sfile = p4"
@@ -4352,6 +4394,7 @@
 (defcsinstr vco2pad1
   (:type :instrument)
   (:pfields amp freq atk rel detune bright vibdepth vibrate submix pan1 pan2)
+  (:defaults :amp -24 :freq 440 :atk 0.01 :rel 0.2 :detune 0 :bright 8000 :vibdepth 0 :vibrate 5 :submix 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
    "kamp = ampdb(p4) * 4"
@@ -4392,7 +4435,8 @@
    "aL, aR pan2 aFilt, kPan"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Warm dual-VCO pad with detune, brightness, vibrato, sub oscillator and moving stereo pan."))
 
 ;;; -------------------------------------------------------
 ;;; VCO2X2MOD1
@@ -4400,6 +4444,7 @@
 (defcsinstr vco2x2mod1
   (:type :instrument)
   (:pfields amp freq atk rel detune bright vibdepth vibrate pwm submix noisemix drift pan1 pan2)
+  (:defaults :amp -24 :freq 440 :atk 0.01 :rel 0.2 :detune 0 :bright 8000 :vibdepth 0 :vibrate 5 :pwm 0.5 :submix 0 :noisemix 0 :drift 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
    "giSine ftgenonce 0, 0, 16384, 10, 1"
@@ -4447,7 +4492,8 @@
    "aL, aR pan2 aMix, kPan"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Dual-VCO pad with PWM, detune, sub/noise mix, drift, vibrato and moving stereo pan."))
 
 ;;; -------------------------------------------------------
 ;;; POSCILX2MOD1
@@ -4455,6 +4501,7 @@
 (defcsinstr poscilx2mod1
   (:type :instrument)
   (:pfields amp freq atk rel detune bright vibdepth vibrate submix noisemix drift osc1fn osc2fn subfn vibfn pan1 pan2)
+  (:defaults :amp -24 :freq 440 :atk 0.01 :rel 0.2 :detune 0 :bright 8000 :vibdepth 0 :vibrate 5 :submix 0 :noisemix 0 :drift 0 :osc1fn 1 :osc2fn 1 :subfn 1 :vibfn 5 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
    "kamp = ampdb(p4) * 1.8"
@@ -4503,7 +4550,8 @@
    "aL, aR pan2 aMix, kPan"
 
    "outleta \"leftout\", aL"
-   "outleta \"rightout\", aR"))
+   "outleta \"rightout\", aR")
+  (:doc "Wavetable pad with two oscillators, sub oscillator, noise, drift, vibrato and selectable tables."))
 
 
 ;;; -------------------------------------------------------
@@ -4516,7 +4564,6 @@
 
 (defcsinstr plateau1
   (:type :fx)
-  (:pfields amp mix predelay size decay damping diffusion modrate moddepth width)
   (:globals
    "giPlateauSine ftgen 0, 0, 16384, 10, 1")
   (:inputs (leftin rightin))
@@ -4694,7 +4741,8 @@
    "aOutR = tanh(aOutR * kOutGain)"
 
    "outleta \"leftout\", aOutL"
-   "outleta \"rightout\", aOutR"))
+   "outleta \"rightout\", aOutR")
+  (:doc "Stereo plateau reverb with fixed internal settings; FX instances do not receive score pfields."))
 
 
 (def-simple-stereo-fx reverberator98

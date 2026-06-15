@@ -4,35 +4,12 @@
 ;;; UTILS:
 ;;;PCH TO FREQ FACTOR MAPPER: pch-to-freqfact list
 (defun pchfrq-mapper (pch)
-  (cond
-   ((= pch 7.00) 1)
-   ((= pch 7.00) 1)
-   ((= pch 7.00) 1)
-   ((= pch 7.01) 1.0595)
-   ((= pch 7.02) 1.1225)
-   ((= pch 7.03) 1.1892)
-   ((= pch 7.04) 1.2599)
-   ((= pch 7.05) 1.3348)
-   ((= pch 7.06) 1.4142)
-   ((= pch 7.07) 1.4983)
-   ((= pch 7.08) 1.5874)
-   ((= pch 7.09) 1.6818)
-   ((= pch 7.10) 1.7818)
-   ((= pch 7.11) 1.8878)
-   ((= pch 8.00) 2)
-   ((= pch 6.00) 0.5)
-   ((= pch 6.01) 0.5297)
-   ((= pch 6.02) 0.5612)
-   ((= pch 6.03) 0.5946)
-   ((= pch 6.04) 0.6300)
-   ((= pch 6.05) 0.6674)
-   ((= pch 6.06) 0.7071)
-   ((= pch 6.07) 0.7492)
-   ((= pch 6.08) 0.7937)
-   ((= pch 6.09) 0.8409)
-   ((= pch 6.10) 0.8909)
-   ((= pch 6.11) 0.9439)
-))
+  "Convert Csound PCH notation to a ratio relative to 7.00."
+  (let* ((octave (floor pch))
+         (pitch-class (round (* 100 (- pch octave)))))
+    (unless (<= 0 pitch-class 11)
+      (error "Invalid PCH pitch class in ~A." pch))
+    (expt 2.0 (/ (+ (* (- octave 7) 12) pitch-class) 12.0))))
 
 (defun pch-to-freqfact (list)
   (mapcar 'pchfrq-mapper list))
@@ -70,6 +47,28 @@
 (defparameter *csound-process* nil)
 (defparameter *csound-last-file* nil)
 (defparameter *csound-last-command* nil)
+(defparameter *last-csound-score-file* nil)
+(defparameter *csound-config*
+  (list :csound-bin "/usr/local/bin/csound"
+        :ssdir "/Users/stephaneboussuge/Samples"
+        :sfdir "/Users/stephaneboussuge/CsoundOutput"
+        :sadir "/Users/stephaneboussuge/CsoundAnalyses"
+        :incdir "/Users/stephaneboussuge/CsoundInclude")
+  "Explicit Csound paths used by LispWorks, which may not inherit shell settings.")
+(defparameter *csound-bin*
+  (or (uiop:getenv "CSOUND_BIN")
+      (getf *csound-config* :csound-bin))
+  "Csound executable. CSOUND_BIN can override the LispWorks configuration.")
+(defparameter *csound-warn-on-deprecated-params* t
+  "Emit a warning when an event explicitly supplies a deprecated pfield.")
+
+(defun build-cs-options (&optional (config *csound-config*))
+  "Build explicit Csound options for a LispWorks session."
+  (format nil "-odac~%--env:SSDIR=~A~%--env:SFDIR=~A~%--env:SADIR=~A~%--env:INCDIR=~A"
+          (getf config :ssdir)
+          (getf config :sfdir)
+          (getf config :sadir)
+          (getf config :incdir)))
 
 (defun csound-running-p ()
   (and *csound-process*
@@ -214,6 +213,9 @@ Also supports string lines."
   name
   type          ; :instrument | :fx | :output
   pfields       ; symbolic names for p4...pn
+  defaults      ; plist of default pfield values
+  required      ; pfields that must be supplied by the caller
+  deprecated    ; accepted for compatibility but scheduled for removal
   globals       ; list of lines (strings or DSL forms)
   inputs        ; list of inlet names
   outputs       ; list of outlet names
@@ -241,14 +243,89 @@ Also supports string lines."
               collect k)
         #'string<))
 
+(defun %plist-key-present-p (plist key)
+  (loop for tail on plist by #'cddr
+        thereis (eq (first tail) key)))
+
 (defun describe-csound-instrument (name)
   (let ((instr (find-csound-instrument name)))
     (list :name    (csound-instrument-name instr)
           :type    (csound-instrument-type instr)
           :pfields (csound-instrument-pfields instr)
+          :defaults (csound-instrument-defaults instr)
+          :required (csound-instrument-required instr)
+          :deprecated (csound-instrument-deprecated instr)
           :inputs  (csound-instrument-inputs instr)
           :outputs (csound-instrument-outputs instr)
           :doc     (csound-instrument-doc instr))))
+
+(defun csound-pfield-unit (pfield)
+  "Return a concise documentation unit for common pfield names."
+  (let ((name (string-downcase (%stringify pfield))))
+    (cond
+      ((member name '("amp") :test #'string=) "dBFS")
+      ((or (string= name "freq")
+           (search "cutoff" name)
+           (search "cf" name)
+           (search "lpf" name)
+           (search "hpf" name)) "Hz")
+      ((or (member name '("atk" "att" "rel" "dec" "rise" "hold"
+                          "predelay" "rvbtime" "fadein" "fadeout"
+                          "skiptime" "skipa" "skipb" "startpos"
+                          "looplen" "xfade") :test #'string=)) "seconds")
+      ((search "rate" name) "Hz")
+      ((or (search "pan" name)
+           (member name '("mix" "sustain" "sus" "center" "width"
+                          "damping" "diffusion" "freeze" "lock")
+                   :test #'string=)) "0..1")
+      ((member name '("file" "filea" "fileb" "analysis")
+               :test #'string=) "path")
+      (t "-"))))
+
+(defun generate-instrument-catalog (&optional file)
+  "Generate a Markdown catalog directly from the registered library."
+  (let ((text
+         (with-output-to-string (out)
+           (format out "# Catalogue des instruments~%~%")
+           (format out "Ce catalogue est genere depuis les definitions `defcsinstr`.~%~%")
+           (dolist (name (list-csound-instruments))
+             (let* ((instr (find-csound-instrument name))
+                    (pfields (csound-instrument-pfields instr))
+                    (defaults (csound-instrument-defaults instr))
+                    (required (csound-instrument-required instr))
+                    (deprecated (csound-instrument-deprecated instr)))
+               (format out "## `~A`~%~%" name)
+               (format out "Type: `~(~A~)`  ~%" (csound-instrument-type instr))
+               (when (csound-instrument-doc instr)
+                 (format out "~A~%" (csound-instrument-doc instr)))
+               (format out "~%")
+               (if pfields
+                   (progn
+                     (format out "| P-field | Parametre | Defaut | Unite | Statut |~%")
+                     (format out "|---:|---|---:|---|---|~%")
+                     (loop for pfield in pfields
+                           for number from 4
+                           for key = (%keywordify pfield) do
+                       (format out "| p~D | `~(~A~)` | ~A | ~A | ~A |~%"
+                               number
+                               pfield
+                               (if (%plist-key-present-p defaults key)
+                                   (format nil "`~A`" (getf defaults key))
+                                   "-")
+                               (csound-pfield-unit pfield)
+                               (cond
+                                 ((member pfield required) "obligatoire")
+                                 ((member pfield deprecated) "deprecie, sans effet")
+                                 (t "optionnel"))))
+                     (format out "~%"))
+                   (format out "Aucun p-field de score.~%~%")))))))
+    (when file
+      (ensure-directories-exist file)
+      (with-open-file (out file :direction :output
+                                :if-exists :supersede
+                                :if-does-not-exist :create)
+        (write-string text out)))
+    text))
 
 ;;; ---------------------------------------------------------------
 ;;; Csound DSL rendering
@@ -279,6 +356,8 @@ Also supports string lines."
 
 (defun %cs-infix-op-p (sym)
   (member sym '(+ - * / > < >= <= == != && ||) :test #'equal))
+
+(declaim (ftype function %cs-expr->string))
 
 (defun %cs-join-infix (op args)
   (with-output-to-string (s)
@@ -400,6 +479,9 @@ Also supports string lines."
 Supports DSL forms and raw strings in :globals and :body."
   (let* ((type-clause    (assoc :type clauses))
          (pfields-clause (assoc :pfields clauses))
+         (defaults-clause (assoc :defaults clauses))
+         (required-clause (assoc :required clauses))
+         (deprecated-clause (assoc :deprecated clauses))
          (globals-clause (assoc :globals clauses))
          (inputs-clause  (assoc :inputs clauses))
          (outputs-clause (assoc :outputs clauses))
@@ -414,6 +496,21 @@ Supports DSL forms and raw strings in :globals and :body."
          (pfields-value
           (if pfields-clause
               (%normalize-flat-clause-values pfields-clause)
+              '()))
+
+         (defaults-value
+          (if defaults-clause
+              (%normalize-flat-clause-values defaults-clause)
+              '()))
+
+         (required-value
+          (if required-clause
+              (%normalize-flat-clause-values required-clause)
+              '()))
+
+         (deprecated-value
+          (if deprecated-clause
+              (%normalize-flat-clause-values deprecated-clause)
               '()))
 
          (globals-value
@@ -440,11 +537,29 @@ Supports DSL forms and raw strings in :globals and :body."
           (if doc-clause
               (second doc-clause)
               nil)))
+    (unless (evenp (length defaults-value))
+      (error "The :defaults clause for ~A must be a property list." name))
+    (let ((pfield-keywords (mapcar #'%keywordify pfields-value)))
+      (loop for tail on defaults-value by #'cddr
+            for key = (first tail) do
+        (unless (member key pfield-keywords)
+          (error "Default parameter ~A is not declared in ~A." key name)))
+      (dolist (required required-value)
+        (unless (member (%keywordify required) pfield-keywords)
+          (error "Required parameter ~A is not declared in ~A."
+                 required name)))
+      (dolist (deprecated deprecated-value)
+        (unless (member (%keywordify deprecated) pfield-keywords)
+          (error "Deprecated parameter ~A is not declared in ~A."
+                 deprecated name))))
     `(register-csound-instrument
       (make-csound-instrument
        :name ,(string-downcase (symbol-name name))
        :type ',type-value
        :pfields ',pfields-value
+       :defaults ',defaults-value
+       :required ',required-value
+       :deprecated ',deprecated-value
        :globals ',globals-value
        :inputs ',inputs-value
        :outputs ',outputs-value
@@ -510,12 +625,71 @@ Supports DSL forms and raw strings in :globals and :body."
   dur
   params)
 
+(defun %canonicalize-csound-params (instrument params)
+  "Apply compatibility aliases without changing the instrument definition."
+  (let* ((instr (find-csound-instrument instrument))
+         (allowed (mapcar #'%keywordify
+                          (csound-instrument-pfields instr)))
+         (result (copy-list params)))
+    (when (and (member :freq allowed)
+               (%plist-key-present-p result :midi))
+      (when (%plist-key-present-p result :freq)
+        (error "Use either :MIDI or :FREQ for ~A, not both."
+               (csound-instrument-name instr)))
+      (setf (getf result :freq)
+            (let ((value (getf result :midi)))
+              (if (listp value)
+                  (mapcar #'keynum-to-hertz value)
+                  (keynum-to-hertz value))))
+      (remf result :midi))
+    result))
+
+(defun %all-csound-values-satisfy-p (value predicate)
+  (every predicate (%ensure-list value)))
+
+(defun validate-common-csound-param-range (key value instrument-name)
+  "Validate only universally safe parameter domains."
+  (labels ((fail (description)
+             (error "Parameter ~A for instrument ~A must be ~A; received ~A."
+                    key instrument-name description value))
+           (numeric-p (x) (numberp x))
+           (between-zero-and-one-p (x)
+             (and (numeric-p x) (<= 0 x 1)))
+           (non-negative-p (x)
+             (and (numeric-p x) (>= x 0)))
+           (positive-p (x)
+             (and (numeric-p x) (> x 0))))
+    (cond
+      ((member key '(:pan :pan1 :pan2 :sustain :sus :center
+                     :suspcent :suscenterpcent :suspct :suscenter
+                     :mix :freeze :lock :width :damping :diffusion)
+               :test #'eq)
+       (unless (%all-csound-values-satisfy-p value
+                                              #'between-zero-and-one-p)
+         (fail "between 0 and 1")))
+      ((eq key :freq)
+       (unless (%all-csound-values-satisfy-p value #'positive-p)
+         (fail "strictly positive")))
+      ((member key '(:atk :att :rel :dec :rise :hold :predelay
+                     :rvbtime :fadein :fadeout :skiptime :skipa :skipb
+                     :startpos :looplen :xfade :jitterdepth)
+               :test #'eq)
+       (unless (%all-csound-values-satisfy-p value #'non-negative-p)
+         (fail "non-negative"))))
+  t))
+
 (defun validate-csound-event (event)
   (let* ((instr (find-csound-instrument (csound-event-instrument event)))
          (allowed (mapcar #'%keywordify
                           (csound-instrument-pfields instr)))
          (params (csound-event-params event))
          (itype (csound-instrument-type instr)))
+    (when (null (csound-event-start event))
+      (error "Missing :START for instrument ~A."
+             (csound-instrument-name instr)))
+    (when (null (csound-event-dur event))
+      (error "Missing :DUR for instrument ~A."
+             (csound-instrument-name instr)))
     (unless (eq itype :instrument)
       (error "Only :instrument definitions may receive score events. ~A is of type ~A."
              (csound-instrument-name instr)
@@ -525,7 +699,21 @@ Supports DSL forms and raw strings in :globals and :body."
         (error "Parameter ~A is not declared in instrument ~A. Allowed parameters: ~A"
                k
                (csound-instrument-name instr)
-               allowed)))
+               allowed))
+      (validate-common-csound-param-range
+       k v (csound-instrument-name instr))
+      (when (and *csound-warn-on-deprecated-params*
+                 (member k
+                         (mapcar #'%keywordify
+                                 (csound-instrument-deprecated instr))))
+        (warn "Parameter ~A for instrument ~A is deprecated and has no effect."
+              k (csound-instrument-name instr))))
+    (dolist (required (csound-instrument-required instr))
+      (let ((key (%keywordify required)))
+        (unless (%plist-key-present-p params key)
+          (error "Missing required parameter ~A for instrument ~A."
+                 key
+                 (csound-instrument-name instr)))))
     t))
 
 (defun cs-quoted-string (s)
@@ -592,7 +780,8 @@ Supports DSL forms and raw strings in :globals and :body."
         append (list k (normalize-csound-param-value-by-key k v))))
 
 (defun make-csound-event* (instrument start dur params)
-  (let* ((normalized-params (normalize-csound-params params))
+  (let* ((canonical-params (%canonicalize-csound-params instrument params))
+         (normalized-params (normalize-csound-params canonical-params))
          (ev (make-csound-event
               :instrument (%stringify instrument)
               :start start
@@ -665,11 +854,17 @@ nchnls = ~a
   (let* ((instr (find-csound-instrument (csound-event-instrument event)))
          (pfields (csound-instrument-pfields instr))
          (params  (csound-event-params event))
+         (defaults (csound-instrument-defaults instr))
          (start   (csound-event-start event))
          (dur     (csound-event-dur event))
          (param-values
           (mapcar (lambda (pf)
-                    (getf params (%keywordify pf)))
+                    (let ((key (%keywordify pf)))
+                      (normalize-csound-param-value-by-key
+                       key
+                       (if (%plist-key-present-p params key)
+                           (getf params key)
+                           (getf defaults key)))))
                   pfields))
          (real-len
           (apply #'%max-param-length
@@ -677,11 +872,15 @@ nchnls = ~a
          (starts (%repeat-to-length start real-len))
          (durs   (%repeat-to-length dur real-len))
          (columns
-          (mapcar (lambda (pf)
-                    (%repeat-to-length
-                     (getf params (%keywordify pf))
-                     real-len))
-                  pfields)))
+          (mapcar (lambda (value)
+                    (%repeat-to-length value real-len))
+                  param-values)))
+    (loop for pf in pfields
+          for value in param-values do
+      (when (null value)
+        (error "No value or default for parameter ~A in instrument ~A."
+               (%keywordify pf)
+               (csound-instrument-name instr))))
     (with-output-to-string (s)
       (loop for i from 0 below real-len do
         (format s "i \"~a\" ~a ~a"
@@ -747,22 +946,13 @@ fx1 -> fx2 -> ... -> last fx"
      (events '())
      (score-headers '())
      (global-orchestra-code '())
-     
-
-(cs-options "-odac
---env:SSDIR=/Users/stephaneboussuge/Samples
---env:SFDIR=/Users/stephaneboussuge/CsoundOutput
---env:SADIR=/Users/stephaneboussuge/CsoundAnalyses
---env:INCDIR=/Users/stephaneboussuge/CsoundInclude")
-
-;(cs-options "-odac") ;; Version de base si Csound est bien configuré
-
+     (cs-options (build-cs-options))
      (sr 44100)
      (ksmps 32)
      (nchnls 2)
      (dbfs 1)
      (play nil)
-     (csound-bin "/usr/local/bin/csound"))
+     (csound-bin *csound-bin*))
   "Generate a complete CSD file."
   (let* ((instrument-names (mapcar #'%stringify instruments))
          (fx-names (mapcar #'%stringify fx))
@@ -811,11 +1001,14 @@ fx1 -> fx2 -> ... -> last fx"
 
             (format s "</CsScore>~%</CsoundSynthesizer>"))))
     (when write-to-file
+      (ensure-directories-exist file)
       (with-open-file (out file
                            :direction :output
                            :if-exists :supersede
                            :if-does-not-exist :create)
-        (write-string result out)))
+        (write-string result out))
+      (setf *last-csound-score-file*
+            (namestring (truename file))))
 
     (when play
   (when (csound-running-p)
@@ -828,6 +1021,34 @@ fx1 -> fx2 -> ... -> last fx"
                              :error-output nil)))
 
     result))
+
+(defun csd->default-wav-path (csd-file)
+  (namestring
+   (make-pathname :type "wav"
+                  :defaults (pathname csd-file))))
+
+(defun render-score (csd-file &key output-file (open nil)
+                                      (print-command nil)
+                                      (csound-bin *csound-bin*))
+  "Render CSD-FILE synchronously to a WAV file and return its pathname."
+  (let* ((csd (namestring (truename csd-file)))
+         (output (or output-file (csd->default-wav-path csd)))
+         (command (list csound-bin "-d" "-m0" "-W" "-o" output csd)))
+    (ensure-directories-exist output)
+    (when print-command
+      (format t "~&~{~A~^ ~}~%" command))
+    (uiop:run-program command :output t :error-output t)
+    (when open
+      (uiop:launch-program (list "open" output)
+                           :output nil
+                           :error-output nil))
+    output))
+
+(defun render-last-score (&rest args)
+  "Render the most recent score written by DEF-CSOUND-SCORE."
+  (unless *last-csound-score-file*
+    (error "No Csound score has been written in this session."))
+  (apply #'render-score *last-csound-score-file* args))
 
 
 ;;; ---------------------------------------------------------------
@@ -857,138 +1078,6 @@ Example:
   (with-output-to-string (out)
     (dolist (line iblock-result)
       (format out "i~{ ~a~}~%" line))))
-
-;;; ---------------------------------------------------------------
-;;; Example library
-;;; ---------------------------------------------------------------
-
-(defcsinstr fmtest
-  (:type :instrument)
-  (:pfields amp midi mod index1 index2 rise dec pan1 pan2)
-  (:globals
-   (gisine ftgen 1 0 16384 10 1))
-  (:outputs (leftout rightout))
-  (:body
-   (kamp = (ampdb p4))
-   (kcps = (mtof p5))
-   (kmod = p6)
-   (kndx line p7 p3 p8)
-   (irise = p9)
-   (idec = p10)
-   (kpan line p11 p3 p12)
-   (asig foscili kamp kcps 1 kmod kndx gisine)
-   (aenv linen 1 irise p3 idec)
-   (aout = "asig * aenv")
-   ((asigl asigr) pan2 aout kpan)
-   (outleta leftout asigl)
-   (outleta rightout asigr))
-  (:doc "FM stereo instrument with evolving index and pan."))
-
-(def-simple-stereo-fx reverberator
-  (aleftin inleta leftin)
-  (arightin inleta rightin)
-  (idelay = 0.71)
-  (icutoff = 12000)
-  ((aleftout arightout) reverbsc aleftin arightin idelay icutoff)
-  (outleta leftout aleftout)
-  (outleta rightout arightout))
-
-(def-simple-stereo-fx compressor
-  (aleftin inleta leftin)
-  (arightin inleta rightin)
-  (kthreshold = 25000)
-  (icomp1 = 0.5)
-  (icomp2 = 0.763)
-  (irtime = 0.1)
-  (iftime = 0.1)
-  (aleftout dam aleftin kthreshold icomp1 icomp2 irtime iftime)
-  (arightout dam arightin kthreshold icomp1 icomp2 irtime iftime)
-  (outleta leftout aleftout)
-  (outleta rightout arightout))
-
-(def-simple-output output
-  (aleftin inleta leftin)
-  (arightin inleta rightin)
-  (outs aleftin arightin))
-
-;;; ---------------------------------------------------------------
-;;; Example usage
-;;; ---------------------------------------------------------------
-
-#|
-(clear-csound-library)
-
-(defcsinstr fmtest
-  (:type :instrument)
-  (:pfields amp midi mod index1 index2 rise dec pan1 pan2)
-  (:globals
-   (gisine ftgen 1 0 16384 10 1))
-  (:outputs (leftout rightout))
-  (:body
-   (kamp = (ampdb p4))
-   (kcps = (mtof p5))
-   (kmod = p6)
-   (kndx line p7 p3 p8)
-   (irise = p9)
-   (idec = p10)
-   (kpan line p11 p3 p12)
-   (asig foscili kamp kcps 1 kmod kndx gisine)
-   (aenv linen 1 irise p3 idec)
-   (aout = "asig * aenv")
-   ((asigl asigr) pan2 aout kpan)
-   (outleta leftout asigl)
-   (outleta rightout asigr))
-  (:doc "FM stereo instrument with evolving index and pan."))
-
-(def-simple-stereo-fx reverberator
-  (aleftin inleta leftin)
-  (arightin inleta rightin)
-  (idelay = 0.71)
-  (icutoff = 12000)
-  ((aleftout arightout) reverbsc aleftin arightin idelay icutoff)
-  (outleta leftout aleftout)
-  (outleta rightout arightout))
-
-(def-simple-stereo-fx compressor
-  (aleftin inleta leftin)
-  (arightin inleta rightin)
-  (kthreshold = 25000)
-  (icomp1 = 0.5)
-  (icomp2 = 0.763)
-  (irtime = 0.1)
-  (iftime = 0.1)
-  (aleftout dam aleftin kthreshold icomp1 icomp2 irtime iftime)
-  (arightout dam arightin kthreshold icomp1 icomp2 irtime iftime)
-  (outleta leftout aleftout)
-  (outleta rightout arightout))
-
-(def-simple-output output
-  (aleftin inleta leftin)
-  (arightin inleta rightin)
-  (outs aleftin arightin))
-
-(setf ev1
-      (cs-event "fmtest"
-                :start (sort-asc (rnd-number 8 0.0 8.0))
-                :dur   (rnd-number 8 0.5 3.0)
-                :amp   -18
-                :midi  (rnd-number 8 24 72)
-                :mod   (rnd-number 8 1.10 1.99)
-                :index1 12
-                :index2 3
-                :rise  0.1
-                :dec   0.25
-                :pan1  0
-                :pan2  1))
-
-(def-csound-score
-  :file "/Users/stephaneboussuge/test.csd"
-  :instruments '("fmtest")
-  :fx '("reverberator" "compressor" "output")
-  :score-headers '("; generated from Opusmodus")
-  :events (list ev1)
-  :play t)
-|#
 
 ;;; ===============================================================
 ;;; END

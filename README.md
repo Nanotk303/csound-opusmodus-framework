@@ -18,6 +18,7 @@ It enables composers to:
 - Define Csound instruments using structured Lisp abstractions
 - Generate musical material algorithmically in Opusmodus
 - Control synthesis parameters through named fields
+- Declare safe defaults and required parameters per instrument
 - Automatically construct audio routing graphs
 - Render complete `.csd` files directly from Lisp
 - Seamlessly switch between real-time playback and offline rendering
@@ -56,7 +57,14 @@ csound-opusmodus-framework/
 │   ├── 02_vco2pad_demo.lisp
 │   └── audio/
 ├── docs/
-│   └── manual.pdf
+│   ├── Manuel_FR.md
+│   ├── Manuel_FR.pdf
+│   └── INSTRUMENTS.md
+├── scripts/
+│   ├── build-docs.sh
+│   └── generate-catalog.lisp
+├── tests/
+│   └── run-tests.lisp
 ├── .gitignore
 ├── LICENSE
 ├── CHANGELOG.md
@@ -110,11 +118,17 @@ Includes:
 Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/csound-opusmodus-framework.git
+git clone https://github.com/Nanotk303/csound-opusmodus-framework.git
 ```
 
-Evaluate the Csound.lisp and CsoundInstrumentsLib.lisp in Opusmodus for a quick test. For installation, copy Csound.lisp in Opusmodus/User Source/Extensions directory and CsoundInstrumentsLib.lisp in Opusmodus/User Source/Libraries 
-and restart Opusmodus
+Evaluate `Csound.lisp` and `CsoundInstrumentsLib.lisp` in Opusmodus for a quick
+test. For installation, copy `Csound.lisp` to `Opusmodus/User Source/Extensions`
+and `CsoundInstrumentsLib.lisp` to `Opusmodus/User Source/Libraries`, then
+restart Opusmodus.
+
+The explicit paths in `*csound-config*` are intentional: LispWorks may not
+inherit the shell `PATH` and Csound environment variables. Adjust that plist to
+match your machine.
 
 
 ---
@@ -137,10 +151,7 @@ Open `examples/01_basic_test.lisp`, adjust the `:file` path if needed, then eval
    (cs-event "sinedrone"
      :start '(0 5 10)
      :dur 8
-     :amp '(-24 -25 -26)
-     :midi '(48 55 60)
-     :pan1 0.2
-     :pan2 0.8))
+     :freq '(130.81 196.00 261.63)))
   :play nil)
 
 (render-last-score :open t)
@@ -157,10 +168,24 @@ Open `examples/01_basic_test.lisp`, adjust the `:file` path if needed, then eval
 
 ## Documentation
 
-Full manual available in:
+The manual and generated instrument reference are available in:
 
 ```text
-docs/manual.pdf
+docs/Manuel_FR.pdf
+docs/INSTRUMENTS.md
+```
+
+Instrument parameters, defaults and required/deprecated status are generated
+directly from the `defcsinstr` definitions. Rebuild the documentation with:
+
+```bash
+./scripts/build-docs.sh
+```
+
+Run the framework checks with:
+
+```bash
+./scripts/run-tests.sh
 ```
 
 ---
@@ -177,7 +202,9 @@ docs/manual.pdf
 
 ## Known Limitations
 
-- Strict pfield mapping is required
+- Some legacy sampling/noise/vocoder `freq` fields remain accepted but are
+  deprecated because they never affected the original instruments
+- `plateau1` currently uses fixed internal settings
 - External Csound installation is necessary
 - Signal normalization remains the composer's responsibility
 
