@@ -7,10 +7,9 @@
 (load "src/Csound.lisp")
 (load "src/CsoundInstrumentsLib.lisp")
 
-(init-seed 90210)
 
 (def-csound-score
-  :file "/Users/stephaneboussuge/ComposingWorkspace/CSound/VCO2Pad_Demo.csd"
+  :file (namestring (merge-pathnames "Csoundscores/VCO2Pad_Demo.csd" (user-homedir-pathname)))
   :instruments '("vco2pad1")
   :fx '("plateau1" "output")
 
@@ -27,9 +26,9 @@
              :freq    '(110 146.83 196 246.94)
              :atk     '(1.5)
              :rel     '(2.5)
-             :detune  '(0.35)
-             :bright  '(0.55)
-             :vibdepth '(0.15)
+             :detune  '(7)
+             :bright  '(2500)
+             :vibdepth '(0.003)
              :vibrate '(4.5)
              :submix  '(0.2)
              :pan1    '(0.15 0.25 0.65 0.75)
@@ -37,4 +36,4 @@
 
   :play nil)
 
-(render-last-score :open t)
+(render-last-score :open nil)

@@ -49,7 +49,7 @@
 (defparameter *csound-last-command* nil)
 (defparameter *last-csound-score-file* nil)
 (defparameter *csound-config*
-  (list :csound-bin "/usr/local/bin/csound"
+  (list :csound-bin "/Applications/Csound/csound"
         :ssdir "/Users/stephaneboussuge/Samples"
         :sfdir "/Users/stephaneboussuge/CsoundOutput"
         :sadir "/Users/stephaneboussuge/CsoundAnalyses"
@@ -259,12 +259,19 @@ Also supports string lines."
           :outputs (csound-instrument-outputs instr)
           :doc     (csound-instrument-doc instr))))
 
-(defun csound-pfield-unit (pfield)
+(defun csound-pfield-unit (pfield &optional instrument-name)
   "Return a concise documentation unit for common pfield names."
   (let ((name (string-downcase (%stringify pfield))))
     (cond
+      ((and (string= name "xfade")
+            (equal instrument-name "synthwaveformvibrato")) "fraction de duree")
+      ((string= name "detunehz") "Hz")
+      ((string= name "panmode") "selecteur 0/1/2")
+      ((string= name "prate") "ratio")
+      ((member name '("lpfq" "q" "q1" "q2") :test #'string=) "Q")
       ((member name '("amp") :test #'string=) "dBFS")
       ((or (string= name "freq")
+           (string= name "bright")
            (search "cutoff" name)
            (search "cf" name)
            (search "lpf" name)
@@ -274,6 +281,7 @@ Also supports string lines."
                           "skiptime" "skipa" "skipb" "startpos"
                           "looplen" "xfade") :test #'string=)) "seconds")
       ((search "rate" name) "Hz")
+      ((search "detune" name) "cents")
       ((or (search "pan" name)
            (member name '("mix" "sustain" "sus" "center" "width"
                           "damping" "diffusion" "freeze" "lock")
@@ -288,6 +296,15 @@ Also supports string lines."
          (with-output-to-string (out)
            (format out "# Catalogue des instruments~%~%")
            (format out "Ce catalogue est genere depuis les definitions `defcsinstr`.~%~%")
+           (format out "Chaque parametre s'utilise comme mot-cle Lisp : `freq` devient `:freq`.~%~%")
+           (format out "Pour chaque instrument, `:start` (p2) et `:dur` (p3) sont obligatoires, en secondes. Les tableaux listent les p-fields a partir de p4, dans leur ordre exact.~%~%")
+           (format out "Les valeurs par defaut sont celles du code, avant les limites internes eventuelles de Csound. Une unite `-` signifie non renseignee, pas necessairement sans dimension. Les champs deprecies sont sans effet, quelle que soit l'unite affichee.~%~%")
+           (format out "Les effets et sorties sont lances par le routage et ne recoivent pas de `cs-event`. Les tables externes et fichiers audio requis ne sont pas fournis.~%~%")
+           (format out "~D entrees : ~D instruments, ~D effets, ~D sortie(s).~%~%"
+                   (hash-table-count *csound-library*)
+                   (loop for i being the hash-values of *csound-library* count (eq (csound-instrument-type i) :instrument))
+                   (loop for i being the hash-values of *csound-library* count (eq (csound-instrument-type i) :fx))
+                   (loop for i being the hash-values of *csound-library* count (eq (csound-instrument-type i) :output)))
            (dolist (name (list-csound-instruments))
              (let* ((instr (find-csound-instrument name))
                     (pfields (csound-instrument-pfields instr))
@@ -312,7 +329,7 @@ Also supports string lines."
                                (if (%plist-key-present-p defaults key)
                                    (format nil "`~A`" (getf defaults key))
                                    "-")
-                               (csound-pfield-unit pfield)
+                               (csound-pfield-unit pfield (csound-instrument-name instr))
                                (cond
                                  ((member pfield required) "obligatoire")
                                  ((member pfield deprecated) "deprecie, sans effet")
@@ -326,6 +343,98 @@ Also supports string lines."
                                 :if-does-not-exist :create)
         (write-string text out)))
     text))
+
+;;; ---------------------------------------------------------------
+;;; Emacs / Eldoc integration
+;;; ---------------------------------------------------------------
+
+(defun csound-event-parameter-keywords (name)
+  "Return the score-event keywords accepted by instrument NAME."
+  (let ((instrument (find-csound-instrument name)))
+    (unless (eq (csound-instrument-type instrument) :instrument)
+      (error "~A is of type ~A and cannot receive CS-EVENT events."
+             name (csound-instrument-type instrument)))
+    (append '(:start :dur)
+            (mapcar #'%keywordify
+                    (csound-instrument-pfields instrument)))))
+
+(defun csound-emacs-instrument-names ()
+  "Return score-instrument names for Emacs completion."
+  (remove-if-not
+   (lambda (name)
+     (eq (csound-instrument-type (find-csound-instrument name))
+         :instrument))
+   (list-csound-instruments)))
+
+(defun csound-emacs-parameter-description (parameter)
+  "Return a short French description for a common event PARAMETER."
+  (let ((name (string-downcase (%stringify parameter))))
+    (cond
+      ((string= name "start") "départ de l'événement")
+      ((string= name "dur") "durée de l'événement")
+      ((string= name "amp") "amplitude")
+      ((string= name "freq") "fréquence fondamentale")
+      ((member name '("atk" "att") :test #'string=) "attaque")
+      ((string= name "rel") "relâchement")
+      ((string= name "detune") "désaccordage")
+      ((string= name "bright") "fréquence du filtre")
+      ((string= name "vibdepth") "profondeur du vibrato")
+      ((string= name "vibrate") "vitesse du vibrato")
+      ((string= name "submix") "niveau du sub-oscillateur")
+      ((string= name "pan1") "panoramique initial")
+      ((string= name "pan2") "panoramique final")
+      (t "paramètre Csound"))))
+
+(defun csound-emacs-instrument-details (name)
+  "Return a compact, human-readable parameter sheet for instrument NAME."
+  (let* ((instrument (find-csound-instrument name))
+         (pfields (csound-instrument-pfields instrument))
+         (defaults (csound-instrument-defaults instrument))
+         (required (csound-instrument-required instrument)))
+    (unless (eq (csound-instrument-type instrument) :instrument)
+      (error "~A is not a score instrument." name))
+    (with-output-to-string (out)
+      (format out "~A — instrument Csound~%~%"
+              (csound-instrument-name instrument))
+      (when (csound-instrument-doc instrument)
+        (format out "~A~%~%" (csound-instrument-doc instrument)))
+      (format out ":start  obligatoire — départ, secondes~%")
+      (format out ":dur    obligatoire — durée, secondes~%")
+      (dolist (pfield pfields)
+        (let* ((key (%keywordify pfield))
+               (raw-unit (csound-pfield-unit pfield (csound-instrument-name instrument)))
+               (unit (if (string= raw-unit "seconds")
+                         "secondes"
+                         raw-unit))
+               (has-default (%plist-key-present-p defaults key)))
+          (format out ":~(~A~)~VT~A"
+                  pfield 18
+                  (csound-emacs-parameter-description pfield))
+          (unless (string= unit "-")
+            (format out ", ~A" unit))
+          (cond
+            ((member pfield required)
+             (format out " — obligatoire"))
+            (has-default
+             (format out " — défaut : ~A" (getf defaults key)))
+            (t
+             (format out " — optionnel")))
+          (terpri out))))))
+
+(defun csound-emacs-metadata (name)
+  "Return live metadata consumed by `csound-framework-mode' in Emacs."
+  (let* ((instrument (find-csound-instrument name))
+         (keywords (csound-event-parameter-keywords name))
+         (keyword-strings
+          (mapcar (lambda (key)
+                    (format nil ":~(~A~)" key))
+                  keywords)))
+    (list :name (csound-instrument-name instrument)
+          :parameters keyword-strings
+          :eldoc (format nil "cs-event \"~A\"  ~{~A~^ ~}"
+                         (csound-instrument-name instrument)
+                         keyword-strings)
+          :details (csound-emacs-instrument-details name))))
 
 ;;; ---------------------------------------------------------------
 ;;; Csound DSL rendering
@@ -817,16 +926,34 @@ Mandatory keywords: :start :dur"
 ;;; Rendering
 ;;; ---------------------------------------------------------------
 
-(defun render-csound-instrument (instrument)
+(defun render-csound-instrument (instrument &key (include-globals t))
   (with-output-to-string (s)
-    (dolist (g (remove nil (csound-instrument-globals instrument)))
-      (format s "~a~%" (%cs-line->string g)))
-    (when (csound-instrument-globals instrument)
+    (when include-globals
+      (dolist (g (remove nil (csound-instrument-globals instrument)))
+        (format s "~a~%" (%cs-line->string g))))
+    (when (and include-globals
+               (csound-instrument-globals instrument))
       (format s "~%"))
     (format s "instr ~a~%" (csound-instrument-name instrument))
     (dolist (line (csound-instrument-body instrument))
       (format s "~a~%" (%cs-line->string line)))
     (format s "endin~%~%")))
+
+(defun render-csound-globals (instruments)
+  "Render unique global orchestra lines for INSTRUMENTS."
+  (let ((seen (make-hash-table :test #'equal))
+        (lines '()))
+    (dolist (instrument instruments)
+      (dolist (line (remove nil (csound-instrument-globals instrument)))
+        (let ((rendered (%cs-line->string line)))
+          (unless (gethash rendered seen)
+            (setf (gethash rendered seen) t)
+            (push rendered lines)))))
+    (with-output-to-string (s)
+      (dolist (line (nreverse lines))
+        (format s "~a~%" line))
+      (when lines
+        (format s "~%")))))
 
 (defun render-csound-header (&key
                              (cs-options "-odac")
@@ -977,13 +1104,17 @@ fx1 -> fx2 -> ... -> last fx"
             (when global-orchestra-code
               (format s "~%"))
 
+            ;; instrument globals
+            (format s "~a" (render-csound-globals
+                             (append instr-objs fx-objs)))
+
             ;; instruments
             (dolist (obj instr-objs)
-              (format s "~a" (render-csound-instrument obj)))
+              (format s "~a" (render-csound-instrument obj :include-globals nil)))
 
             ;; fx
             (dolist (obj fx-objs)
-              (format s "~a" (render-csound-instrument obj)))
+              (format s "~a" (render-csound-instrument obj :include-globals nil)))
 
             ;; routing + alwayson
             (format s "~a" (render-connect-lines all-routes))

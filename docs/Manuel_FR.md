@@ -2,7 +2,7 @@
 title: "Framework Csound pour Opusmodus"
 subtitle: "Manuel utilisateur et reference"
 author: "Stephane Boussuge"
-date: "2026"
+date: "29 septembre 2026"
 lang: fr-FR
 geometry: margin=2cm
 toc: true
@@ -31,7 +31,7 @@ chemins Csound restent donc explicites dans `*csound-config*` :
 
 ```lisp
 (defparameter *csound-config*
-  (list :csound-bin "/usr/local/bin/csound"
+  (list :csound-bin "/Applications/Csound/csound"
         :ssdir "/Users/stephaneboussuge/Samples"
         :sfdir "/Users/stephaneboussuge/CsoundOutput"
         :sadir "/Users/stephaneboussuge/CsoundAnalyses"
@@ -41,6 +41,27 @@ chemins Csound restent donc explicites dans `*csound-config*` :
 `build-cs-options` transforme cette configuration en options Csound. La
 variable d'environnement `CSOUND_BIN` peut uniquement remplacer le chemin de
 l'executable si necessaire.
+
+# Installation et exemples
+
+Chargez `src/Csound.lisp`, puis `src/CsoundInstrumentsLib.lisp`, dans cet ordre.
+Utilisez des chemins absolus, ou placez le repertoire de travail a la racine
+du depot. Evitez de recharger une ancienne copie installee ensuite.
+Les chemins de configuration ci-dessus sont ceux de l'auteur : adaptez-les.
+Si vous modifiez le chemin de Csound apres le chargement, executez aussi :
+
+```lisp
+(setf *csound-bin* (getf *csound-config* :csound-bin))
+```
+
+Les exemples 01 et 02 ecrivent dans `~/Csoundscores/` et rendent un WAV sans
+ouvrir d'application. L'exemple 03 est une composition de dix minutes qui
+necessite vos propres fichiers audio et l'adaptation des chemins en tete de
+fichier ; ces echantillons ne sont pas distribues.
+
+Dans l'exemple `vco2pad1`, `:bright` est en Hz (2500), `:detune` en cents (7),
+et `:vibdepth` est une modulation relative (0.003). Ce ne sont pas trois
+controles normalises interchangeables.
 
 # Definition d'un instrument
 
@@ -173,6 +194,12 @@ sbcl --noinform --non-interactive --load scripts/generate-catalog.lisp
 
 # Tests
 
+Mise a jour validee avec Csound 7.0 sur macOS ARM64. Csound 6 n'a pas ete
+reteste pour cette revision. La compilation couvre les 64 instruments et
+les 12 effets ; le rendu audio teste une selection de familles, pas toutes
+les combinaisons de parametres ni tous les fichiers utilisateurs.
+
+
 ```bash
 ./scripts/run-tests.sh
 ```
@@ -186,6 +213,37 @@ Les panoramiques et proportions courantes doivent rester entre `0` et `1`, les
 frequences doivent etre strictement positives et les temps courants ne peuvent
 pas etre negatifs. Un parametre deprecie explicitement fourni produit un
 avertissement, sans interrompre les anciens projets.
+
+# Integration Emacs et Eldoc
+
+Le moteur expose `csound-emacs-instrument-names` (noms),
+`csound-event-parameter-keywords` (mots-cles),
+`csound-emacs-instrument-details` (fiche lisible) et
+`csound-emacs-metadata` (plist pour un client Emacs). Le mode Emacs lui-meme
+n'est pas inclus dans ce depot.
+
+# Declarations globales
+
+Les lignes `:globals` identiques sont emises une seule fois, avant les
+instruments et les effets. Les oscillateurs partagent ainsi leurs tables.
+Plusieurs instruments utilisent maintenant `ftgen` au lieu de `ftgenonce`.
+Les lecteurs de fichiers concernes peuvent allouer une table par evenement :
+surveillez la memoire pour les longues partitions avec beaucoup de samples.
+
+# Lecture du catalogue
+
+Le catalogue donne tous les noms, l'ordre exact des p-fields, les valeurs
+par defaut et les champs obligatoires ou deprecies. `:start` et `:dur` sont
+communs aux instruments et sont en secondes. Un tiret dans la colonne unite
+signifie que l'unite n'est pas renseignee ; consultez le corps de l'instrument
+pour ses controles specifiques. Les valeurs par defaut sont celles de l'API,
+avant les bornages internes de l'instrument. Une valeur indiquee en Hz pour
+un ancien champ `freq` deprecie reste sans effet sonore.
+
+`panmode` de `mincer2` et `mincer3` selectionne 0 (trajectoire), 1 (LFO) ou
+2 (aleatoire). `detunehz` est en Hz ; `detune` est en cents. `lpfq` est un
+facteur Q. `xfade` de `synthwaveformvibrato` est une fraction de duree,
+contrairement au temps de fondu en secondes de `mincer3`.
 
 # Catalogue genere
 

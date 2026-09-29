@@ -9,7 +9,7 @@ trap 'rm -f "$log"' EXIT
 sbcl --noinform --non-interactive --load tests/generate-audio-smoke-csd.lisp
 csound -W -o "$wav" "$csd" >"$log" 2>&1
 
-if grep -Eq 'overall amps:[[:space:]]+0\.00000[[:space:]]+0\.00000' "$log"; then
+if grep -Eq 'overall amps:[[:space:]]+0\.0+[[:space:]]+0\.0+([[:space:]]|$)' "$log"; then
   cat "$log"
   printf '%s\n' "Audio smoke test produced silence." >&2
   exit 1

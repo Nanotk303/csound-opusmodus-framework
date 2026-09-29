@@ -8,7 +8,7 @@
 (load "src/CsoundInstrumentsLib.lisp")
 
 (def-csound-score
-  :file "/Users/stephaneboussuge/ComposingWorkspace/CSound/Basic_Test.csd"
+  :file (namestring (merge-pathnames "Csoundscores/Basic_Test.csd" (user-homedir-pathname)))
   :instruments '("sinedrone")
   :fx '("plateau1" "output")
 
@@ -27,4 +27,4 @@
 
   :play nil)
 
-(render-last-score :open t)
+(render-last-score :open nil)

@@ -2,6 +2,16 @@
 
 Ce catalogue est genere depuis les definitions `defcsinstr`.
 
+Chaque parametre s'utilise comme mot-cle Lisp : `freq` devient `:freq`.
+
+Pour chaque instrument, `:start` (p2) et `:dur` (p3) sont obligatoires, en secondes. Les tableaux listent les p-fields a partir de p4, dans leur ordre exact.
+
+Les valeurs par defaut sont celles du code, avant les limites internes eventuelles de Csound. Une unite `-` signifie non renseignee, pas necessairement sans dimension. Les champs deprecies sont sans effet, quelle que soit l'unite affichee.
+
+Les effets et sorties sont lances par le routage et ne recoivent pas de `cs-event`. Les tables externes et fichiers audio requis ne sont pas fournis.
+
+77 entrees : 64 instruments, 12 effets, 1 sortie(s).
+
 ## `analog1`
 
 Type: `instrument`  
@@ -109,7 +119,7 @@ Analog2: two-vco2 synth with selectable LP/BP/HP filter, AHDSR envelope, and VCO
 | p7 | `pw1` | `0.5` | - | optionnel |
 | p8 | `wave2` | `0` | - | optionnel |
 | p9 | `pw2` | `0.5` | - | optionnel |
-| p10 | `detune` | `0` | - | optionnel |
+| p10 | `detune` | `0` | cents | optionnel |
 | p11 | `att` | `0.01` | seconds | optionnel |
 | p12 | `hold` | `0` | seconds | optionnel |
 | p13 | `dec` | `0.2` | seconds | optionnel |
@@ -139,7 +149,7 @@ Analog2b: dual-vco2 synth with independent PWM, VCO2 interval and detune, amp/fi
 | p12 | `pwmrate2` | `0.5` | Hz | optionnel |
 | p13 | `pwmdepth2` | `0` | - | optionnel |
 | p14 | `vco2interval` | `0` | - | optionnel |
-| p15 | `detune` | `0` | - | optionnel |
+| p15 | `detune` | `0` | cents | optionnel |
 | p16 | `mix2` | `0.5` | - | optionnel |
 | p17 | `porta` | `0.01` | - | optionnel |
 | p18 | `att` | `0.01` | seconds | optionnel |
@@ -180,7 +190,7 @@ Analog2c: dual-vco2 synth with interval/detune, independent PWM, sub osc, noise,
 | p12 | `pwmrate2` | `0.5` | Hz | optionnel |
 | p13 | `pwmdepth2` | `0` | - | optionnel |
 | p14 | `vco2interval` | `0` | - | optionnel |
-| p15 | `detune` | `0` | - | optionnel |
+| p15 | `detune` | `0` | cents | optionnel |
 | p16 | `mix2` | `0.5` | - | optionnel |
 | p17 | `porta` | `0.01` | - | optionnel |
 | p18 | `submix` | `0` | - | optionnel |
@@ -228,7 +238,7 @@ Analog2d: dual-vco2 synth with interval/detune, PWM, sub, noise, pitch env, amp/
 | p12 | `pwmrate2` | `0.5` | Hz | optionnel |
 | p13 | `pwmdepth2` | `0` | - | optionnel |
 | p14 | `vco2interval` | `0` | - | optionnel |
-| p15 | `detune` | `0` | - | optionnel |
+| p15 | `detune` | `0` | cents | optionnel |
 | p16 | `mix2` | `0.5` | - | optionnel |
 | p17 | `porta` | `0.01` | - | optionnel |
 | p18 | `submix` | `0` | - | optionnel |
@@ -271,7 +281,7 @@ Cook-style analog synth: 2 VCO, 2 LFO PWM, glide, ringmod, resonant filter, ster
 | p5 | `freq` | `440` | Hz | optionnel |
 | p6 | `porta` | `0.01` | - | optionnel |
 | p7 | `vco2ratio` | `1` | - | optionnel |
-| p8 | `detunehz` | `0` | - | optionnel |
+| p8 | `detunehz` | `0` | Hz | optionnel |
 | p9 | `vcf1` | `8000` | Hz | optionnel |
 | p10 | `vcf2` | `2000` | Hz | optionnel |
 | p11 | `rez` | `0.2` | - | optionnel |
@@ -314,7 +324,7 @@ Synchronous granular synthesis from a soundfile using the Csound diskgrain opcod
 | p6 | `freq` | `440` | Hz | optionnel |
 | p7 | `pitch` | `1` | - | optionnel |
 | p8 | `grsize` | `0.1` | - | optionnel |
-| p9 | `prate` | `1` | Hz | optionnel |
+| p9 | `prate` | `1` | ratio | optionnel |
 | p10 | `envfn` | `1` | - | optionnel |
 | p11 | `overlaps` | `4` | - | optionnel |
 | p12 | `maxgrsize` | `0.1` | - | optionnel |
@@ -484,7 +494,7 @@ Looping audio file player based on lposcil. The file is passed in :file, loop po
 ## `mincer1`
 
 Type: `instrument`  
-Mincer1: mono file playback via ftgenonce + mincer, with k-rate panning.
+Mincer1: mono file playback via ftgen + mincer, with k-rate panning.
 
 | P-field | Parametre | Defaut | Unite | Statut |
 |---:|---|---:|---|---|
@@ -525,7 +535,7 @@ Mincer2: file-based mincer instrument with AHDSR amplitude envelope, speed scan,
 | p20 | `cutoff` | `8000` | Hz | optionnel |
 | p21 | `res` | `0.2` | - | optionnel |
 | p22 | `filttype` | `0` | - | optionnel |
-| p23 | `panmode` | `0` | 0..1 | optionnel |
+| p23 | `panmode` | `0` | selecteur 0/1/2 | optionnel |
 | p24 | `pan1` | `0.5` | 0..1 | optionnel |
 | p25 | `pan2` | `0.5` | 0..1 | optionnel |
 | p26 | `panrate` | `5` | Hz | optionnel |
@@ -559,7 +569,7 @@ Mincer3: file-based mincer instrument with local loop window, crossfaded loop re
 | p22 | `cutoff` | `8000` | Hz | optionnel |
 | p23 | `res` | `0.2` | - | optionnel |
 | p24 | `filttype` | `0` | - | optionnel |
-| p25 | `panmode` | `0` | 0..1 | optionnel |
+| p25 | `panmode` | `0` | selecteur 0/1/2 | optionnel |
 | p26 | `pan1` | `0.5` | 0..1 | optionnel |
 | p27 | `pan2` | `0.5` | 0..1 | optionnel |
 | p28 | `panrate` | `5` | Hz | optionnel |
@@ -592,7 +602,7 @@ Filtered noise texture with a unit envelope, moving LP/HP filters and sample-and
 | p9 | `center` | `0.5` | 0..1 | optionnel |
 | p10 | `lpf1` | `8000` | Hz | optionnel |
 | p11 | `lpf2` | `2000` | Hz | optionnel |
-| p12 | `lpfq` | `1` | Hz | optionnel |
+| p12 | `lpfq` | `1` | Q | optionnel |
 | p13 | `hpf1` | `20` | Hz | optionnel |
 | p14 | `hpf2` | `20` | Hz | optionnel |
 | p15 | `rate1lo` | `1` | Hz | optionnel |
@@ -616,7 +626,7 @@ Sample-and-hold noise texture with moving filters, resonance and distortion.
 | p9 | `center` | `0.5` | 0..1 | optionnel |
 | p10 | `lpf1` | `8000` | Hz | optionnel |
 | p11 | `lpf2` | `2000` | Hz | optionnel |
-| p12 | `lpfq` | `1` | Hz | optionnel |
+| p12 | `lpfq` | `1` | Q | optionnel |
 | p13 | `hpf1` | `20` | Hz | optionnel |
 | p14 | `hpf2` | `20` | Hz | optionnel |
 | p15 | `rate1lo` | `1` | Hz | optionnel |
@@ -658,7 +668,7 @@ White-noise voice with proportional envelope and moving low-pass filter.
 | p9 | `center` | `0.5` | 0..1 | optionnel |
 | p10 | `cutoff1` | `8000` | Hz | optionnel |
 | p11 | `cutoff2` | `2000` | Hz | optionnel |
-| p12 | `q` | `1` | - | optionnel |
+| p12 | `q` | `1` | Q | optionnel |
 
 ## `noiseunitenvbp`
 
@@ -799,7 +809,7 @@ A single pluck with a unit envelope and variable low pass filter.
 | p12 | `suscenter` | `0.5` | - | optionnel |
 | p13 | `lpfstart` | `8000` | Hz | optionnel |
 | p14 | `lpfend` | `2000` | Hz | optionnel |
-| p15 | `lpfq` | `1` | Hz | optionnel |
+| p15 | `lpfq` | `1` | Q | optionnel |
 
 ## `poscilx2mod1`
 
@@ -812,8 +822,8 @@ Wavetable pad with two oscillators, sub oscillator, noise, drift, vibrato and se
 | p5 | `freq` | `440` | Hz | optionnel |
 | p6 | `atk` | `0.01` | seconds | optionnel |
 | p7 | `rel` | `0.2` | seconds | optionnel |
-| p8 | `detune` | `0` | - | optionnel |
-| p9 | `bright` | `8000` | - | optionnel |
+| p8 | `detune` | `0` | cents | optionnel |
+| p9 | `bright` | `8000` | Hz | optionnel |
 | p10 | `vibdepth` | `0` | - | optionnel |
 | p11 | `vibrate` | `5` | Hz | optionnel |
 | p12 | `submix` | `0` | - | optionnel |
@@ -903,7 +913,7 @@ Cross-synthesis sampler combining two files through a moving spectral envelope.
 | p11 | `center` | `0.5` | 0..1 | optionnel |
 | p12 | `lpf1` | `8000` | Hz | optionnel |
 | p13 | `lpf2` | `2000` | Hz | optionnel |
-| p14 | `lpfq` | `1` | Hz | optionnel |
+| p14 | `lpfq` | `1` | Q | optionnel |
 | p15 | `skipa` | `0` | seconds | optionnel |
 | p16 | `skipb` | `0` | seconds | optionnel |
 | p17 | `fftsize` | `1024` | - | optionnel |
@@ -957,7 +967,7 @@ Sound-file processor with proportional envelope, moving LP/HP filters and sample
 | p10 | `center` | `0.5` | 0..1 | optionnel |
 | p11 | `lpf1` | `8000` | Hz | optionnel |
 | p12 | `lpf2` | `2000` | Hz | optionnel |
-| p13 | `lpfq` | `1` | Hz | optionnel |
+| p13 | `lpfq` | `1` | Q | optionnel |
 | p14 | `skiptime` | `0` | seconds | optionnel |
 | p15 | `hpf1` | `20` | Hz | optionnel |
 | p16 | `hpf2` | `20` | Hz | optionnel |
@@ -983,7 +993,7 @@ Sound-file player with proportional envelope and moving low-pass filter.
 | p10 | `center` | `0.5` | 0..1 | optionnel |
 | p11 | `cutoff1` | `8000` | Hz | optionnel |
 | p12 | `cutoff2` | `2000` | Hz | optionnel |
-| p13 | `q` | `1` | - | optionnel |
+| p13 | `q` | `1` | Q | optionnel |
 | p14 | `skiptime` | `0` | seconds | optionnel |
 
 ## `samplerunitenvbp`
@@ -1026,7 +1036,7 @@ Sound-file player with proportional envelope, waveshaping distortion and moving 
 | p14 | `curveneg` | `1` | - | optionnel |
 | p15 | `lpf1` | `8000` | Hz | optionnel |
 | p16 | `lpf2` | `2000` | Hz | optionnel |
-| p17 | `lpfq` | `1` | Hz | optionnel |
+| p17 | `lpfq` | `1` | Q | optionnel |
 | p18 | `skiptime` | `0` | seconds | optionnel |
 
 ## `samplerunitenvpeq`
@@ -1045,8 +1055,8 @@ Sound-file player with proportional envelope and time-varying parametric EQ.
 | p10 | `center` | `0.5` | 0..1 | optionnel |
 | p11 | `cf1` | `1000` | Hz | optionnel |
 | p12 | `cf2` | `2000` | Hz | optionnel |
-| p13 | `q1` | `1` | - | optionnel |
-| p14 | `q2` | `1` | - | optionnel |
+| p13 | `q1` | `1` | Q | optionnel |
+| p14 | `q2` | `1` | Q | optionnel |
 | p15 | `gain1` | `1` | - | optionnel |
 | p16 | `gain2` | `1` | - | optionnel |
 | p17 | `filtertype` | `0` | - | optionnel |
@@ -1133,7 +1143,7 @@ VCO voice with proportional envelope, moving low-pass filter and four sine tremo
 | p7 | `suscenter` | `0.5` | - | optionnel |
 | p8 | `lpfstart` | `8000` | Hz | optionnel |
 | p9 | `lpfend` | `2000` | Hz | optionnel |
-| p10 | `lpfq` | `1` | Hz | optionnel |
+| p10 | `lpfq` | `1` | Q | optionnel |
 | p11 | `wave` | `0` | - | optionnel |
 | p12 | `widthstart` | `0.5` | - | optionnel |
 | p13 | `widthend` | `0.5` | - | optionnel |
@@ -1165,7 +1175,7 @@ VCO instrument with proportional macro envelope, low-pass filter and four square
 | p7 | `suscenter` | `0.5` | - | optionnel |
 | p8 | `lpfstart` | `8000` | Hz | optionnel |
 | p9 | `lpfend` | `2000` | Hz | optionnel |
-| p10 | `lpfq` | `1` | Hz | optionnel |
+| p10 | `lpfq` | `1` | Q | optionnel |
 | p11 | `wave` | `0` | - | optionnel |
 | p12 | `widthstart` | `0.5` | - | optionnel |
 | p13 | `widthend` | `0.5` | - | optionnel |
@@ -1197,7 +1207,7 @@ VCO instrument with proportional macro envelope, resonant lpf18 distortion stage
 | p7 | `suscenter` | `0.5` | - | optionnel |
 | p8 | `lpfstart` | `8000` | Hz | optionnel |
 | p9 | `lpfend` | `2000` | Hz | optionnel |
-| p10 | `lpfq` | `1` | Hz | optionnel |
+| p10 | `lpfq` | `1` | Q | optionnel |
 | p11 | `wave` | `0` | - | optionnel |
 | p12 | `widthstart` | `0.5` | - | optionnel |
 | p13 | `widthend` | `0.5` | - | optionnel |
@@ -1226,7 +1236,7 @@ Waveform-morphing synth with delayed vibrato and layered detuned oscillators.
 | p10 | `vibrate` | `5` | Hz | optionnel |
 | p11 | `wave1` | `0` | - | optionnel |
 | p12 | `wave2` | `0` | - | optionnel |
-| p13 | `xfade` | `0.05` | seconds | optionnel |
+| p13 | `xfade` | `0.05` | fraction de duree | optionnel |
 | p14 | `pan1` | `0.5` | 0..1 | optionnel |
 | p15 | `pan2` | `0.5` | 0..1 | optionnel |
 
@@ -1252,8 +1262,8 @@ Warm dual-VCO pad with detune, brightness, vibrato, sub oscillator and moving st
 | p5 | `freq` | `440` | Hz | optionnel |
 | p6 | `atk` | `0.01` | seconds | optionnel |
 | p7 | `rel` | `0.2` | seconds | optionnel |
-| p8 | `detune` | `0` | - | optionnel |
-| p9 | `bright` | `8000` | - | optionnel |
+| p8 | `detune` | `0` | cents | optionnel |
+| p9 | `bright` | `8000` | Hz | optionnel |
 | p10 | `vibdepth` | `0` | - | optionnel |
 | p11 | `vibrate` | `5` | Hz | optionnel |
 | p12 | `submix` | `0` | - | optionnel |
@@ -1271,8 +1281,8 @@ Dual-VCO pad with PWM, detune, sub/noise mix, drift, vibrato and moving stereo p
 | p5 | `freq` | `440` | Hz | optionnel |
 | p6 | `atk` | `0.01` | seconds | optionnel |
 | p7 | `rel` | `0.2` | seconds | optionnel |
-| p8 | `detune` | `0` | - | optionnel |
-| p9 | `bright` | `8000` | - | optionnel |
+| p8 | `detune` | `0` | cents | optionnel |
+| p9 | `bright` | `8000` | Hz | optionnel |
 | p10 | `vibdepth` | `0` | - | optionnel |
 | p11 | `vibrate` | `5` | Hz | optionnel |
 | p12 | `pwm` | `0.5` | - | optionnel |

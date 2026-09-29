@@ -27,10 +27,11 @@
   (:type :instrument)
   (:pfields amp freq pan1 pan2)
   (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5)
+  (:globals
+   "giSine4096 ftgen 0, 0, 4096, 10, 1"
+   "giPulse4096 ftgen 0, 0, 4096, 10, 1, 1, 1, 1, .7, .5, .3, .1")
   (:outputs (leftout rightout))
   (:body
-   "iSine = ftgenonce:i(0, 0, 4096, 10, 1)"
-   "iPulse = ftgenonce:i(0, 0, 4096, 10, 1, 1, 1, 1, .7, .5, .3, .1)"
    "iDur = p3"
    "iAmp = ampdb(p4) * 5"
    "iFreq = p5"
@@ -44,10 +45,10 @@
    "idep = 2"
    "irat = 1"
    "k3 linseg 0, idel1, idep, isus, idep, irel, 0"
-   "k2 oscil k3, irat, iSine"
-   "k4 oscil k3, (irat * .666), iPulse"
-   "a1 poscil k1, (iFreq + k2), iSine"
-   "a2 poscil (k1 * .8), ((iFreq * .5) + (k4 * .5)), iSine"
+   "k2 oscil k3, irat, giSine4096"
+   "k4 oscil k3, (irat * .666), giPulse4096"
+   "a1 poscil k1, (iFreq + k2), giSine4096"
+   "a2 poscil (k1 * .8), ((iFreq * .5) + (k4 * .5)), giSine4096"
    "aMixSig = a1 + a2"
    "aSigL = aMixSig * cos(kPan * $M_PI_2)"
    "aSigR = aMixSig * sin(kPan * $M_PI_2)"
@@ -63,9 +64,10 @@
   (:type :instrument)
   (:pfields amp freq pan1 pan2 suspcent suscenterpcent)
   (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :suspcent 0.7 :suscenterpcent 0.5)
+  (:globals
+   "giSine4096 ftgen 0, 0, 4096, 10, 1")
   (:outputs (leftout rightout))
   (:body
-   "iSine = ftgenonce:i(0, 0, 4096, 10, 1)"
    "iDur = p3"
    "iAmp = ampdb(p4) * 5"
    "iFreq = p5"
@@ -77,7 +79,7 @@
    "iAttack = ((1 - iSusPcent) * iSusCenterPcent) * iDur"
    "iRelease = ((1 - iSusPcent) * (1 - iSusCenterPcent)) * iDur"
    "kAmp linen iAmp, iAttack, iDur, iRelease"
-   "aSig poscil kAmp, iFreq, iSine"
+   "aSig poscil kAmp, iFreq, giSine4096"
    "aMixSig = aSig"
    "aSigL = aMixSig * cos(kPan * $M_PI_2)"
    "aSigR = aMixSig * sin(kPan * $M_PI_2)"
@@ -93,11 +95,12 @@
   (:type :instrument)
   (:pfields amp freq pan1 pan2)
   (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5)
+  (:globals
+   "giSine4096 ftgen 0, 0, 4096, 10, 1"
+   "giPulse4096 ftgen 0, 0, 4096, 10, 1, 1, 1, 1, .7, .5, .3, .1"
+   "giSaw4096 ftgen 0, 0, 4096, 10, 1, .5, .3, .25, .2, .167, .14, .125, .111")
   (:outputs (leftout rightout))
   (:body
-   "iSine = ftgenonce:i(0, 0, 4096, 10, 1)"
-   "iPulse = ftgenonce:i(0, 0, 4096, 10, 1, 1, 1, 1, .7, .5, .3, .1)"
-   "iSaw = ftgenonce:i(0, 0, 4096, 10, 1, .5, .3, .25, .2, .167, .14, .125, .111)"
    "iDur = p3"
    "iAmp = ampdb(p4) * 5"
    "iFreq = p5"
@@ -111,10 +114,10 @@
    "idep = 2"
    "irat = 1"
    "k3 linseg 0, idel1, idep, isus, idep, irel, 0"
-   "k2 oscil k3, irat, iSine"
-   "k4 oscil k3, (irat * .666), iPulse"
-   "a1 poscil k1, (iFreq + k2), iSaw"
-   "a2 poscil (k1 * .8), ((iFreq * .5) + (k4 * .5)), iSine"
+   "k2 oscil k3, irat, giSine4096"
+   "k4 oscil k3, (irat * .666), giPulse4096"
+   "a1 poscil k1, (iFreq + k2), giSaw4096"
+   "a2 poscil (k1 * .8), ((iFreq * .5) + (k4 * .5)), giSine4096"
    "aMixSig = a1 + a2"
    "aSigL = aMixSig * cos(kPan * $M_PI_2)"
    "aSigR = aMixSig * sin(kPan * $M_PI_2)"
@@ -130,9 +133,10 @@
   (:type :instrument)
   (:pfields amp freq pan1 pan2 suspcent suscenterpcent)
   (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5 :suspcent 0.7 :suscenterpcent 0.5)
+  (:globals
+   "giSaw4096 ftgen 0, 0, 4096, 10, 1, .5, .3, .25, .2, .167, .14, .125, .111")
   (:outputs (leftout rightout))
   (:body
-   "iSaw = ftgenonce:i(0, 0, 4096, 10, 1, .5, .3, .25, .2, .167, .14, .125, .111)"
    "iDur = p3"
    "iAmp = ampdb(p4) * 5"
    "iFreq = p5"
@@ -144,7 +148,7 @@
    "iAttack = ((1 - iSusPcent) * iSusCenterPcent) * iDur"
    "iRelease = ((1 - iSusPcent) * (1 - iSusCenterPcent)) * iDur"
    "kAmp linen iAmp, iAttack, iDur, iRelease"
-   "aSig oscil kAmp, iFreq, iSaw"
+   "aSig oscil kAmp, iFreq, giSaw4096"
    "aMixSig = aSig"
    "aSigL = aMixSig * cos(kPan * $M_PI_2)"
    "aSigR = aMixSig * sin(kPan * $M_PI_2)"
@@ -1143,12 +1147,12 @@
    "kVib oscili (kVibCtl * iVibWth) + kRnd, iVibRate * max(kVibCtl, 0.001), giVib"
 
    "transient:"
-   "timout iNoiseDur, p3, continue"
+   "timout iNoiseDur, p3, fm_continue"
    "kTrans linseg 1, iNoiseDur, 0, 1, 0"
    "aNoise randi kTrans * iAmp / 4, 0.2 * iFreq"
    "aAttack oscili aNoise, 2000, giVib"
 
-   "continue:"
+   "fm_continue:"
    "aMod1 oscili iFm1 * (iInd1 + kTrans), iFm1, giFmCore"
    "aMod2 oscili iFm2 * (iInd2 + kTrans), iFm2, giFmCore"
    "aMod3 oscili iFm3 * (iInd3 + kTrans), iFm3, giFmCore"
@@ -2679,11 +2683,11 @@
 
    ;; deferred loading, no post-normalization
    "if (iNchnls == 1) then"
-   "  iFtL ftgenonce 0, 0, 0, -1, Sfile, 0, 0, 1"
+   "  iFtL ftgen 0, 0, 0, -1, Sfile, 0, 0, 1"
    "  iFtR = iFtL"
    "else"
-   "  iFtL ftgenonce 0, 0, 0, -1, Sfile, 0, 0, 1"
-   "  iFtR ftgenonce 0, 0, 0, -1, Sfile, 0, 0, 2"
+   "  iFtL ftgen 0, 0, 0, -1, Sfile, 0, 0, 1"
+   "  iFtR ftgen 0, 0, 0, -1, Sfile, 0, 0, 2"
    "endif"
 
    ;; safe loop end handling
@@ -2927,9 +2931,9 @@
    "kPan       = line:k(p12, p3, p13)"
 
    ;; ----------------------------------------------------
-   ;; Load soundfile into a function table once
+   ;; Load soundfile into a function table
    ;; ----------------------------------------------------
-   "iTab       ftgenonce 0, 0, 0, 1, Sfile, 0, 0, 0"
+   "iTab       ftgen 0, 0, 0, 1, Sfile, 0, 0, 0"
 
    ;; ----------------------------------------------------
    ;; Time pointer in seconds
@@ -2948,7 +2952,7 @@
    "aOutL, aOutR pan2 aSig, kPan"
    "outleta \"leftout\", aOutL"
    "outleta \"rightout\", aOutR")
-  (:doc "Mincer1: mono file playback via ftgenonce + mincer, with k-rate panning."))
+  (:doc "Mincer1: mono file playback via ftgen + mincer, with k-rate panning."))
 
 
 
@@ -3035,7 +3039,7 @@
    ;; ----------------------------------------------------
    ;; Load soundfile
    ;; ----------------------------------------------------
-   "iTab         ftgenonce 0, 0, 0, 1, Sfile, 0, 0, 0"
+   "iTab         ftgen 0, 0, 0, 1, Sfile, 0, 0, 0"
 
    ;; ----------------------------------------------------
    ;; Time pointer in seconds
@@ -3194,7 +3198,7 @@
    ;; ----------------------------------------------------
    ;; Load soundfile
    ;; ----------------------------------------------------
-   "iTab         ftgenonce 0, 0, 0, 1, Sfile, 0, 0, 0"
+   "iTab         ftgen 0, 0, 0, 1, Sfile, 0, 0, 0"
 
    ;; ----------------------------------------------------
    ;; Local loop phase
@@ -4131,9 +4135,10 @@
   (:type :instrument)
   (:pfields amp freq mod index1 index2 rise dec pan1 pan2)
   (:defaults :amp -24 :freq 440 :mod 1 :index1 1 :index2 1 :rise 0.01 :dec 0.2 :pan1 0.5 :pan2 0.5)
+  (:globals
+   "giFmSine ftgen 0, 0, 16384, 10, 1")
   (:outputs (leftout rightout))
   (:body
-   "iSine = ftgenonce:i(0, 0, 16384, 10, 1)"
    "kamp = ampdb:k(p4)"
    "kcps = p5"
    "kmod = p6"
@@ -4145,7 +4150,7 @@
    "ipan1 = p11"
    "ipan2 = p12"
    "kPan = line:k(ipan1,p3,ipan2)"
-   "aSig = foscili:a(kamp, kcps, 1, kmod, kndx, iSine)"
+   "aSig = foscili:a(kamp, kcps, 1, kmod, kndx, giFmSine)"
    "aEnv = linen(1, irise, p3, idec)"
    "aOut = aSig * aEnv"
    "aSigL, aSigR pan2 aOut, kPan"
@@ -4161,10 +4166,11 @@
   (:type :instrument)
   (:pfields amp freq pan1 pan2)
   (:defaults :amp -24 :freq 440 :pan1 0.5 :pan2 0.5)
+  (:globals
+   "giNightWave ftgen 0, 0, 4096, 10, 1, .5, .33, .25, .0, .1, .1, .1")
   (:outputs (leftout rightout))
   (:body
    "; String-pad borrowed from the piece \"Bay at Night\""
-   "iwave = ftgenonce:i(0, 0, 4096, 10, 1, .5, .33, .25, .0, .1, .1, .1)"
    "iamp = ampdb(p4)"
    "ihz = p5"
    "ipan1 = p6"
@@ -4172,9 +4178,9 @@
    "kPan = line:k(ipan1, p3, ipan2)"
    "kctrl = linseg:k(0, p3*0.25, iamp, p3*0.50, iamp, p3*0.25, 0)"
 
-   "afund = poscil:a(kctrl * 0.333, ihz, iwave)"
-   "acel1 = poscil:a(kctrl * 0.333, ihz - 0.1, iwave)"
-   "acel2 = poscil:a(kctrl * 0.333, ihz + 0.1, iwave)"
+   "afund = poscil:a(kctrl * 0.333, ihz, giNightWave)"
+   "acel1 = poscil:a(kctrl * 0.333, ihz - 0.1, giNightWave)"
+   "acel2 = poscil:a(kctrl * 0.333, ihz + 0.1, giNightWave)"
    "asig = afund + acel1 + acel2"
 
    ;; cutoff compatible :freq
@@ -4195,9 +4201,10 @@
   (:type :instrument)
   (:pfields amp note1 note2)
   (:defaults :amp -24 :note1 110 :note2 220)
+  (:globals
+   "giSine4096 ftgen 0, 0, 4096, 10, 1")
   (:outputs (leftout rightout))
   (:body
-   "iSine = ftgenonce:i(0, 0, 4096, 10, 1)"
    "iamp = ampdb(p4)"
    "inote1 = p5"
    "inote2 = p6"
@@ -4211,7 +4218,7 @@
    "klh init 1"
    "kmul rspline 0.3, 0.82, 0.04, 0.2"
    "kamp rspline 0.02, 3, 0.05, 0.1"
-   "a1 gbuzz kenv*kamp, knote*semitone(kdtn), 75, 1, kmul^1.75, iSine"
+   "a1 gbuzz kenv*kamp, knote*semitone(kdtn), 75, 1, kmul^1.75, giSine4096"
    "a1 dcblock2 a1"
    "a1 = a1 * 10"
    "kpan rspline 0, 1, 0.1, 1"
@@ -4270,9 +4277,10 @@
   (:type :instrument)
   (:pfields amp ft dens1 dens2 rise dec pan1 pan2)
   (:defaults :amp -24 :ft 1 :dens1 20 :dens2 20 :rise 0.01 :dec 0.2 :pan1 0.5 :pan2 0.5)
+  (:globals
+   "giGrainWin ftgen 0, 0, 1025, 20, 2, 1")
   (:outputs (leftout rightout))
   (:body
-   "iWin = ftgenonce:i(0, 0, 1025, 20, 2, 1)"
    "iDur = p3"
    "kamp = ampdb:k(p4)"
    "iFt = p5"
@@ -4285,7 +4293,7 @@
    "ipitch = sr/ftlen(iFt)"
    "kdens1 = expon(iDens1, p3, iDens2)"
    "aEnv = linen(1, irise, iDur, idec)"
-   "a1 = grain(aEnv * kamp, ipitch, kdens1, 0, 0, 1, iFt, iWin, 1)"
+   "a1 = grain(aEnv * kamp, ipitch, kdens1, 0, 0, 1, iFt, giGrainWin, 1)"
    "kPan = line:k(ipan1,p3,ipan2)"
    "aL, aR pan2 a1, kPan"
    "outleta \"leftout\", aL"
@@ -4300,9 +4308,10 @@
   (:type :instrument)
   (:pfields amp ft dens1 dens2 rise dec pan1 pan2 pitchfact)
   (:defaults :amp -24 :ft 1 :dens1 20 :dens2 20 :rise 0.01 :dec 0.2 :pan1 0.5 :pan2 0.5 :pitchfact 1)
+  (:globals
+   "giGrainWin ftgen 0, 0, 1025, 20, 2, 1")
   (:outputs (leftout rightout))
   (:body
-   "iWin = ftgenonce:i(0, 0, 1025, 20, 2, 1)"
    "iDur = p3"
    "kamp = ampdb:k(p4)"
    "iFt = p5"
@@ -4317,7 +4326,7 @@
    "ipitch2 = ipitch * ipitchfact"
    "kdens1 = expon(iDens1, p3, iDens2)"
    "aEnv = linen(1, irise, iDur, idec)"
-   "a1 = grain(aEnv * kamp, ipitch2, kdens1, 0, 0, 1, iFt, iWin, 1)"
+   "a1 = grain(aEnv * kamp, ipitch2, kdens1, 0, 0, 1, iFt, giGrainWin, 1)"
    "kPan = line:k(ipan1,p3,ipan2)"
    "aL, aR pan2 a1, kPan"
    "outleta \"leftout\", aL"
@@ -4332,9 +4341,10 @@
   (:type :instrument)
   (:pfields amp freq fn gdur ovrlp rise dec rndvarfrq1 rndvarfrq2 pan1 pan2)
   (:defaults :amp -24 :freq 440 :fn 1 :gdur 0.1 :ovrlp 4 :rise 0.01 :dec 0.2 :rndvarfrq1 1 :rndvarfrq2 1 :pan1 0.5 :pan2 0.5)
+  (:globals
+   "giGrainWin ftgen 0, 0, 1025, 20, 2, 1")
   (:outputs (leftout rightout))
   (:body
-   "iwfn = ftgenonce:i(0, 0, 1025, 20, 2, 1)"
    "iDur = p3"
    "kamp = ampdb:k(p4)"
    "kcps = p5"
@@ -4348,7 +4358,7 @@
    "ipan1 = p13"
    "ipan2 = p14"
    "kfmd = expon(iRndVarFrq1, p3, iRndVarFrq2)"
-   "a1 = grain2(kcps, kfmd, kgdur, iovrlp, kfn, iwfn)"
+   "a1 = grain2(kcps, kfmd, kgdur, iovrlp, kfn, giGrainWin)"
    "aEnv = linen(kamp, irise, iDur, idec)"
    "a1 = a1 * aEnv"
    "kPan = line:k(ipan1,p3,ipan2)"
@@ -4447,7 +4457,7 @@
   (:defaults :amp -24 :freq 440 :atk 0.01 :rel 0.2 :detune 0 :bright 8000 :vibdepth 0 :vibrate 5 :pwm 0.5 :submix 0 :noisemix 0 :drift 0 :pan1 0.5 :pan2 0.5)
   (:outputs (leftout rightout))
   (:body
-   "giSine ftgenonce 0, 0, 16384, 10, 1"
+   "giSine ftgen 0, 0, 16384, 10, 1"
 
    "kamp = ampdb(p4) * 1.8"
    "kfreq = p5"

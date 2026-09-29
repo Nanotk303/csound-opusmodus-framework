@@ -9,6 +9,8 @@
 
 ---
 
+**Updated: 2026-09-29.** The instrument catalogue is generated from this revision of the source.
+
 ## Overview
 
 The **Csound–Opusmodus Framework** is a Common Lisp domain-specific language (DSL) designed to unify **algorithmic composition** and **sound synthesis** within a single environment.
@@ -108,7 +110,7 @@ Includes:
 ## Requirements
 
 - Opusmodus
-- Csound 6+
+- Csound (validated with 7.0; Csound 6 was not retested for this update)
 - Common Lisp environment (LispWorks recommended)
 
 ---
@@ -122,9 +124,9 @@ git clone https://github.com/Nanotk303/csound-opusmodus-framework.git
 ```
 
 Evaluate `Csound.lisp` and `CsoundInstrumentsLib.lisp` in Opusmodus for a quick
-test. For installation, copy `Csound.lisp` to `Opusmodus/User Source/Extensions`
-and `CsoundInstrumentsLib.lisp` to `Opusmodus/User Source/Libraries`, then
-restart Opusmodus.
+test. For installation, load `src/Csound.lisp` first, then `src/CsoundInstrumentsLib.lisp`.
+Use absolute paths when loading from Opusmodus, or set the working directory
+to the repository root. Avoid loading an older installed copy afterwards.
 
 The explicit paths in `*csound-config*` are intentional: LispWorks may not
 inherit the shell `PATH` and Csound environment variables. Adjust that plist to
@@ -162,7 +164,11 @@ Open `examples/01_basic_test.lisp`, adjust the `:file` path if needed, then eval
 ## Included Examples
 
 - `examples/01_basic_test.lisp` — minimal test using `sinedrone`
-- `examples/02_vco2pad_demo.lisp` — simple texture with `vco2pad1`
+- `examples/02_vco2pad_demo.lisp` — simple texture with `vco2pad1`; brightness in Hz, detune in cents
+- `examples/03_mysterious_meditation_10min.lisp` — ten-minute composition; requires your own sample files and edited paths. Load the framework first.
+
+The first two examples write to `~/Csoundscores/` and render WAV without opening
+another application. Run their relative `load` forms from the repository root.
 
 ---
 
@@ -171,6 +177,7 @@ Open `examples/01_basic_test.lisp`, adjust the `:file` path if needed, then eval
 The manual and generated instrument reference are available in:
 
 ```text
+docs/Manuel_FR.md
 docs/Manuel_FR.pdf
 docs/INSTRUMENTS.md
 ```
@@ -181,6 +188,9 @@ directly from the `defcsinstr` definitions. Rebuild the documentation with:
 ```bash
 ./scripts/build-docs.sh
 ```
+
+Building the PDF requires SBCL, Pandoc, XeLaTeX, Helvetica Neue and Menlo.
+The checks require SBCL, Csound and `sndfile-info` (libsndfile).
 
 Run the framework checks with:
 
@@ -248,3 +258,19 @@ Composer — Algorithmic Composition Specialist
 - Opusmodus
 - The Csound community
 - Research in computer-assisted composition
+
+## Emacs integration
+
+The core provides `csound-emacs-instrument-names`,
+`csound-event-parameter-keywords`, `csound-emacs-instrument-details` and
+`csound-emacs-metadata` for completion and Eldoc clients. An Emacs mode is not
+bundled in this repository.
+
+## Sharing and compatibility
+
+See the [French manual](docs/Manuel_FR.md) and the
+[complete instrument and parameter catalogue](docs/INSTRUMENTS.md).
+Personal sample files are not included. `*csound-config*` contains the author's
+installation paths; edit them before use. After changing the executable path
+at runtime, also set `*csound-bin*`. The latest validation environment is
+recorded in [VALIDATION.md](docs/VALIDATION.md).
