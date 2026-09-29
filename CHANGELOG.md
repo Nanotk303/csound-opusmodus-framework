@@ -2,6 +2,7 @@
 
 ## 2026-09-29
 
+- Explicitly require Csound 7 in the installation documentation.
 - Synchronised the installed July core and instrument library.
 - Added Emacs/Eldoc metadata helpers and unique global orchestra rendering.
 - Replaced legacy ftgenonce usage in affected instruments.

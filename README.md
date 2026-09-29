@@ -9,6 +9,8 @@
 
 ---
 
+**Requires Csound 7.**
+
 **Updated: 2026-09-29.** The instrument catalogue is generated from this revision of the source.
 
 ## Overview
@@ -110,7 +112,7 @@ Includes:
 ## Requirements
 
 - Opusmodus
-- Csound (validated with 7.0; Csound 6 was not retested for this update)
+- **Csound 7** (required; this version of the framework targets Csound 7)
 - Common Lisp environment (LispWorks recommended)
 
 ---

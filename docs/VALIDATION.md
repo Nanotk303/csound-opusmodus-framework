@@ -1,5 +1,7 @@
 # Validation - 2026-09-29
 
+**Requirement: Csound 7.** This release targets Csound 7.
+
 Environment: macOS ARM64, SBCL 2.6.4, Csound 7.0 (build 2026-07-09).
 
 - Registry: 77 entries, comprising 64 instruments, 12 effects and one output.

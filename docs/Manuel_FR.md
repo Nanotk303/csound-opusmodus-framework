@@ -12,6 +12,10 @@ fontsize: 10pt
 
 # Vue d'ensemble
 
+**Prerequis : Csound 7 et Opusmodus.** Cette version du framework cible
+Csound 7. Installez Csound 7 avant de configurer le chemin de l'executable.
+
+
 Le framework relie la composition algorithmique d'Opusmodus a la synthese
 Csound. Les instruments sont declares avec `defcsinstr`, les evenements avec
 `cs-event`, puis `def-csound-score` produit un fichier CSD complet avec routage
@@ -194,8 +198,7 @@ sbcl --noinform --non-interactive --load scripts/generate-catalog.lisp
 
 # Tests
 
-Mise a jour validee avec Csound 7.0 sur macOS ARM64. Csound 6 n'a pas ete
-reteste pour cette revision. La compilation couvre les 64 instruments et
+Csound 7 est requis. Mise a jour validee avec Csound 7.0 sur macOS ARM64. La compilation couvre les 64 instruments et
 les 12 effets ; le rendu audio teste une selection de familles, pas toutes
 les combinaisons de parametres ni tous les fichiers utilisateurs.
 
